@@ -44,6 +44,6 @@ async def dockStop(request, dockCode):
 
 @gateway.route("/LD/HF/<dockCode>", methods=['GET','POST'])
 async def dockIdHF(request, dockCode):
-    print(f"[HF READER]                    :   {request.body.decode('utf-8')}")
+    print(f"[HF READER]                 :   {request.body.decode('utf-8')}")
     dataEPC = request.body.decode('utf-8')
     return text('OK')
