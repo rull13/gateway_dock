@@ -1,7 +1,7 @@
 from datetime import datetime, date, timedelta
 import datetime as dt
 import asyncio
-from gateway import database, app
+from gateway import cursor, app, mydb
 
 async def timetypeid():
     from gateway.config import cursorsql, conn

@@ -1,22 +1,19 @@
 import asyncio
-from gateway_dock import database, app
+from gateway_dock import cursor, mydb, app, conn, cursorsql, logger
 import pyodbc
 from datetime import datetime, date, timedelta
-
+import MySQLdb
 async def dbServer():
     global cursorsql, conn
-    query = "SELECT ip, port, dbname, dbport, dbuid, dbpass FROM ipserver"
-    dat = await database.fetch_one(query=query)
-    SERVER = f'{dat[0]},{dat[3]}'
-    dbname = f'{dat[2]}'
-    dbuid = f'{dat[4]}'
-    dbpwd = f'{dat[5]}'
+    sqlDbServer = "SELECT ip, port, dbname, dbport, dbuid, dbpass FROM ipserver"
+    cursor.execute(sqlDbServer)
+    datDbServer = cursor.fetchone()
     conn = pyodbc.connect(driver='{ODBC Driver 17 for SQL Server}',
-                                   server=SERVER,
-                                   database=dbname,
-                                   uid=dbuid,pwd=dbpwd)
+                                   server=f'{datDbServer[0]},{datDbServer[3]}',
+                                   database=f'{datDbServer[2]}',
+                                   uid=f'{datDbServer[4]}',pwd=f'{datDbServer[5]}')
     cursorsql = conn.cursor()
-    print("[SQL SERVER]                :   SUCCESCFULLY CONNECTED to SQL SERVER")
+    logger.info("[SQL SERVER]   :   SUCCESCFULLY CONNECTED to SQL SERVER")
 
 
 async def reconnenctToDbServer():
@@ -30,11 +27,29 @@ async def reconnenctToDbServer():
         cursorsql.execute(testping)
         testype = cursorsql.fetchone()
         tstp = testype
-        print("[DB SERVER]                 :   CONNECTED to DB SERVER")
+        logger.info("[DB SERVER]     :   CONNECTED to DB SERVER")
     except:
         try:
             app.add_task(dbServer())
-            print("[SQL SERVER]               :   SUCCESCFULLY CONNECTED to SQL SERVER")
         except:
-            print("[DB SERVER]                :   ERROR")
+            logger.warning("[DB SERVER]    :   ERROR NOT CONNECTED")
     app.add_task(reconnenctToDbServer())
+
+async def reconMysql():
+    await asyncio.sleep(60)
+    try:
+        mydb.ping(True)
+    except:
+        cursor = mydb.cursor()
+    app.add_task(reconMysql())
+
+async def getIPdisplay(dock):
+    try:
+        sqlGetIpDisplay = "SELECT IP FROM dock_alarm WHERE ID = %s"
+        cursor.execute(sqlGetIpDisplay, dock)
+        dataIpDisplay = cursor.fetchone()
+        ip = dataIpDisplay[0]
+        return ip
+    except:
+        logger.error(f'[CONFIG]       :   GETTING IP {dock} ERROR')
+        return 0
