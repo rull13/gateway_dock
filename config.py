@@ -53,3 +53,14 @@ async def getIPdisplay(dock):
     except:
         logger.error(f'[CONFIG]       :   GETTING IP {dock} ERROR')
         return 0
+
+async def getIPServer(dock):
+    try:
+        sqlGetIpServer = "SELECT ip, port FROM ipserver"
+        cursor.execute(sqlGetIpServer)
+        dataIpServer = cursor.fetchone()
+        ipServer = f"{dataIpServer[0]}:{dataIpServer[1]}"
+        return ipServer
+    except:
+        logger.error(f'[CONFIG]       :   GETTING IP SERVER ERROR')
+        return 0

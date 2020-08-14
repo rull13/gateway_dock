@@ -4,15 +4,14 @@ mydb = MySQLdb.connect(host="127.0.0.1", user="root", db="polytama_dev", port=33
 
 # logger.info("[MYSQL]         :   SUCCESCFULLY CONNECTED to MYSQL")
 cursor = mydb.cursor()
-try:
-    errorBooking = "SELECT ID, URL FROM send_error WHERE SEND_STATUS = %s ORDER BY ID ASC LIMIT 1"
-    cursor.execute(errorBooking, ["BOOKING"])
-    valErrorBooking = cursor.fetchone()
-    idErrorBook = valErrorBooking[0]
-    urlErrorBook = valErrorBooking[1]
-except:
-    idErrorBook = 'OFF'
-    urlErrorBook = 'OFF'
-
+dockCode = 1
+GetUidDock = "SELECT UID, POLICE_NO, STATUS FROM loading_dock WHERE ID = 1"
+cursor.execute(GetUidDock)
+GetUid = cursor.fetchone()
+UidDb = GetUid[0]
+PoliceNOHF = GetUid[1]
+statusHFLD = GetUid[2]
+logger.info(f'[HF RFID]       :   [QUERY] SELECT UID FROM DOCK {dockCode}')
+logger.info(f'[HF RFID]       :   [QUERY] {UidDb}')
 
 print(idErrorBook)

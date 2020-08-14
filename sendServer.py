@@ -4,10 +4,10 @@ from datetime import datetime, date, timedelta
 import MySQLdb
 import requests_async as requests
 
-async def sendErrorBook():
+async def sendErrorDisplay():
     try:
         errorBooking = "SELECT ID, URL FROM send_error WHERE SEND_STATUS = %s ORDER BY ID ASC LIMIT 1"
-        cursor.execute(errorBooking, ["BOOKING"])
+        cursor.execute(errorBooking, ["TO DISPLAY"])
         valErrorBooking = cursor.fetchone()
         idErrorBook = valErrorBooking[0]
         urlErrorBook = valErrorBooking[1]
@@ -18,15 +18,52 @@ async def sendErrorBook():
         sendErrorBookStat = False
     if sendErrorBookStat:
         try:
-            logger.info(f'[PULL BOOKING]  :   SEND GET {urlErrorBook}')
+            logger.info(f'[PULL BOOKING]  : [SEND DISPLAY]  SEND GET {urlErrorBook}')
             rBookingError = await requests.get(urlErrorBook, timeout = 2)
-            logger.info(f'[PULL BOOKING]  :   SUCCESCFULLY SEND GET TO DISPLAY')
+            logger.info(f'[PULL BOOKING]  : [SEND DISPLAY]  SUCCESCFULLY SEND GET TO DISPLAY')
             sqldelBook = 'DELETE FROM send_error WHERE id = %s'
             cursor.execute(sqldelBook, [idErrorBook,])
             mydb.commit()
         except:
-            logger.error(f'[PULL BOOKING] :   SEND TO DISPLAY ERROR')
+            logger.error(f'[PULL BOOKING] : [SEND DISPLAY]  SEND TO DISPLAY ERROR')
     if idErrorBook != 'OFF':
+        return False
+    else:
+        return True
+
+async def sendErrorTapIn():
+    try:
+        errorHFServer = "SELECT ID, UID, DOCK, URL, TIME FROM send_error WHERE SEND_STATUS = %s ORDER BY ID ASC LIMIT 1"
+        cursor.execute(errorHFServer, ["TAP START IN"])
+        valErrorHFServer = cursor.fetchone()
+        idErrorHF = valErrorHFServer[0]
+        uidErrorHF = valErrorHFServer[1]
+        DockErrorHF = valErrorHFServer[2]
+        TimeErrorHF = valErrorHFServer[4]
+        urlErrorHF = valErrorHFServer[3]
+        sendErrorHF = True
+    except:
+        idErrorHF = 'OFF'
+        uidErrorHF = 'OFF'
+        DockErrorHF = 'OFF'
+        TimeErrorHF = 'OFF'
+        urlErrorHF = 'OFF'
+        sendErrorHF = False
+    if sendErrorHF:
+        dataErrorHF = {'uidRfid':uidErrorHF,
+                'dockCode':DockErrorHF,
+                'time':str(TimeErrorHF) }
+        try:
+            logger.info(f'[PULL HF]       :   [SEND SERVER] {dataErrorHF}')
+            rHFError = await requests.post(urlErrorHF, json=dataErrorHF,timeout = 2)
+            logger.info(f'[PULL HF]       :   [SEND SERVER] SUCCESCFULLY SEND TO SERVER')
+
+            sqldelErrorHF = 'DELETE FROM send_error WHERE id = %s'
+            cursor.execute(sqldelErrorHF, [idErrorHF,])
+            mydb.commit()
+        except:
+            logger.error(f'[PULL HF]      :   SEND TO SERVER ERROR')
+    if idErrorHF != 'OFF':
         return False
     else:
         return True
