@@ -1,11 +1,10 @@
 from datetime import datetime, date, timedelta
 import datetime as dt
 import asyncio
-from gateway import cursor, app, mydb
+from  gateway_dock import cursor, app, mydb
 
 async def timetypeid():
-    from gateway.config import cursorsql, conn
-    from gateway.config import truncateDB
+    from gateway_dock.config import cursorsql, conn
     '''
     SEARCH ID DAY IN SERVER
     WILL RETURN TIME START WORK, TIME END WORK, AND SHIFT ID
@@ -56,7 +55,7 @@ class Timeshift():
         COMPRAING TIME REAL AND TIME SHIFT
         AND MAKE THIS GATEWAY CANT SAVE THE DATA
         '''
-        from gateway.config import cursorsql, conn
+        from gateway_dock.config import cursorsql, conn
         typeid = await timetypeid()
         timeid = typeid[0]
         timenow = typeid[1]
@@ -136,7 +135,7 @@ class Timeshift():
         COMPRAING TIME REAL AND TIME SHIFT
         AND MAKE THIS GATEWAY CANT SAVE THE DATA
         '''
-        from gateway.config import cursorsql, conn
+        from gateway_dock.config import cursorsql, conn
         typeid = await timetypeid()
         timeid = typeid[0]
         timenow = typeid[1]
