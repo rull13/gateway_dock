@@ -64,3 +64,15 @@ async def getIPServer(dock):
     except:
         logger.error(f'[CONFIG]       :   GETTING IP SERVER ERROR')
         return 0
+
+
+async def statAlarm(dock):
+    try:
+        sqlGetAlarm = "SELECT STATUS FROM dock_alarm WHERE ID = %s"
+        cursor.execute(sqlGetAlarm, dock)
+        dataGetAlarm = cursor.fetchone()
+        statAlarm = f"{dataGetAlarm[0]}"
+        return statAlarm
+    except:
+        logger.error(f'[CONFIG]       :   GETTING STAT ALARM ERROR')
+        return 0
