@@ -6,11 +6,11 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 import time
 import pyodbc
-
+import os
 
 formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
 
-logname = f'POLYTAMA.log'
+logname = f'logs/polytama-dev.log'
 handler = TimedRotatingFileHandler(logname, when="midnight", interval=1)
 handler.setFormatter(formatter)
 handler.suffix = "%Y-%m-%d"
@@ -32,7 +32,7 @@ while(SQLCONNECT):
     '''
     try:
         mydb = MySQLdb.connect(host="127.0.0.1", user="root", db="polytama_dev", port=3306)
-        
+
         logger.info("[MYSQL]         :   SUCCESCFULLY CONNECTED to MYSQL")
         cursor = mydb.cursor()
         sqlip = "SELECT ip, port, dbname, dbport, dbuid, dbpass FROM ipserver"
