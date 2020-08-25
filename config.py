@@ -46,7 +46,7 @@ async def reconMysql():
 async def getIPdisplay(dock):
     try:
         sqlGetIpDisplay = "SELECT IP FROM dock_alarm WHERE ID = %s"
-        cursor.execute(sqlGetIpDisplay, dock)
+        cursor.execute(sqlGetIpDisplay, [dock,])
         dataIpDisplay = cursor.fetchone()
         ip = dataIpDisplay[0]
         return ip
@@ -69,7 +69,7 @@ async def getIPServer(dock):
 async def statAlarm(dock):
     try:
         sqlGetAlarm = "SELECT STATUS FROM dock_alarm WHERE ID = %s"
-        cursor.execute(sqlGetAlarm, dock)
+        cursor.execute(sqlGetAlarm, [dock,])
         dataGetAlarm = cursor.fetchone()
         statAlarm = f"{dataGetAlarm[0]}"
         return statAlarm
