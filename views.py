@@ -27,6 +27,7 @@ app.add_task(reconnenctToDbServer())
 app.add_task(reconMysql())
 
 async def startDurationLoading(dockCode):
+    #BELUM KIRIM DATA KE SERVER KALO ALARM
     await asyncio.sleep(30)
     timeWork = await Timeshift().timework()
     overTime = await Timeshift().overtime()
@@ -51,7 +52,7 @@ async def startDurationLoading(dockCode):
         TargetDurationCount = "OFF"
         logger.error(f'[COUNT DOCK]   :   [DOCK {dockCode}] [QUERY] ERROR TO GET DATA FORM DOCK COUNT')
 
-    if timeWork[4] == 'WORK_ON' or overTime[2] =='OVERTIME_ON' :
+    if timeWork[4] == 'WORK_ON' or overTime[2] =='OVERTIME_ON' and statusCount == 'START':
         if TimeLastCount > timeNowTimedelta:
             timeRange =  60
         else:
@@ -69,8 +70,8 @@ async def startDurationLoading(dockCode):
             logger.error(f'[COUNT DOCK]   :   [DOCK {dockCode}] [COUNTING] ERROR TO UPDATE NEW DURATION')
 
         if newDuration > TargetDurationCount:
-            logger.warning(f'[COUNT DOCK]   :   [DOCK {dockCode}] [COUNTING] LOADING HAS EXCEED TARGET')
-            logger.warning(f'[COUNT DOCK]   :   [DOCK {dockCode}] [COUNTING] ALARM ON')
+            logger.warning(f'[COUNT DOCK] :   [DOCK {dockCode}] [COUNTING] LOADING HAS EXCEED TARGET')
+            logger.warning(f'[COUNT DOCK] :   [DOCK {dockCode}] [COUNTING] ALARM ON')
             ipDisplay = await getIPdisplay(dockCode)
             statAlarmCount = await statAlarm(dockCode)
             if statAlarmCount == "OFF":
@@ -88,6 +89,16 @@ async def startDurationLoading(dockCode):
                     logger.error(f'[COUNT DOCK]   :   [DOCK {dockCode}] [SEND DISPLAY] SAVE TO DB PULLING')
                     app.add_task(trySendDisplay())
                 try:
+                    updateAlarmLog = "INSERT INTO log_alarm (UID, DOCK, STATUS, NOTE, TIME) VALUES (%s, %s, %s, %s, %s)"
+                    valAlarmLog = uidCount, int(dockCode), 'ALARM ON', "OVERTIME",str(dateTimeNow)
+                    cursor.execute(updateAlarmLog, valAlarmLog)
+                    # logger.info(f'[BOOKING]       :   [LOG] {valBookingLog}')
+                    mydb.commit()
+                    logger.info(f'[COUNT DOCK]    :   [DOCK {dockCode}] [LOG] SUCCESCFULLY UPDATE TO LOG ALARM')
+                except:
+                    logger.error(f'[COUNT DOCK]   :   [DOCK {dockCode}] [LOG] INSERT TO LOG ERROR')
+
+                try:
                     updateStatAlarmCount = "UPDATE dock_alarm SET ALARM = %s, TIME_ALARM = %s, STATUS = %s WHERE ID = %s"
                     valStatAlarmCount = ["OVERTIME", str(dateTimeNow), "ON", int(dockCode)]
                     cursor.execute(updateStatAlarmCount,valStatAlarmCount)
@@ -95,6 +106,7 @@ async def startDurationLoading(dockCode):
                     logger.info(f'[COUNT DOCK]    :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE DB DOCK ALARM')
                 except:
                     logger.error(f'[COUNT DOCK]   :   [DOCK {dockCode}] [QUERY] ERROR TO UPDATE DB DOCK ALARM')
+
     else:
         logger.info(f'[COUNT DOCK]    :   [DOCK {dockCode}] [COUNTING] WORK OFF')
 
@@ -233,8 +245,19 @@ async def dockStart(request, dockCode):
     date_ = now.strftime("%Y%m%d")
     time_ = now.strftime("%H:%M:%S")
     try:
-        updateStartDockLog = "INSERT INTO log_server (STATUS, DOCK, TARGET_TIME, TIME, DATA) VALUES (%s, %s, %s, %s, %s)"
-        valStartDockLog = "START", int(dockCode), int(data_dock['targetTime']), str(now), "IN"
+        getuidCount = "SELECT UID, POLICE_NO FROM loading_dock WHERE ID = %s"
+        cursor.execute(getuidCount, [dockCode, ])
+        GetuidCount = cursor.fetchone()
+        uidgetCount = GetuidCount[0]
+        policegetCount = GetuidCount[1]
+        logger.info(f'[START DOCK]    :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY SELECT UID')
+    except:
+        uidgetCount = "notfound"
+        policegetCount = "notfound"
+        logger.error(f'[START DOCK]   :   [DOCK {dockCode}] [QUERY] SELECT DURATION ERROR')
+    try:
+        updateStartDockLog = "INSERT INTO log_server (UID, STATUS, DOCK, POLICE_NO, TARGET_TIME, TIME, DATA) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        valStartDockLog = uidgetCount, "START", int(dockCode), policegetCount, int(data_dock['targetTime']), str(now), "START COUNT"
         cursor.execute(updateStartDockLog, valStartDockLog)
         # logger.info(f'[BOOKING]       :   [LOG] {valBookingLog}')
         mydb.commit()
@@ -263,20 +286,33 @@ async def dockStart(request, dockCode):
 
 @gateway.route("/dock/stop/<dockCode>", methods=['GET','POST'])
 async def dockStop(request, dockCode):
-    logger.info(f"[DATA IN]       :  [DOCK {dockCode}] /dock/stop/<dockCode>")
+    logger.info(f"[DATA IN]       :  [DOCK {dockCode}] /dock/stop/{dockCode}")
     # print(database.is_connected)
     now = datetime.now()
     date_ = now.strftime("%Y%m%d")
     time_ = now.strftime("%H:%M:%S")
     try:
-        getStopCount = "SELECT DURATION FROM dock_time_count WHERE ID = %s"
+        getStopCount = "SELECT UID, DURATION, TARGET_DURATION FROM dock_time_count WHERE ID = %s"
         cursor.execute(getStopCount, [dockCode, ])
         GetStopCount = cursor.fetchone()
-        durationStopCount = GetStopCount[0]
+        uidStopCount = GetStopCount[0]
+        durationStopCount = GetStopCount[1]
+        TargetStopCount = GetStopCount[2]
         logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY SELECT DURATION')
     except:
         durationStopCount = "notfound"
+        uidStopCount = "notfound"
+        TargetStopCount = "notfound"
         logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [QUERY] SELECT DURATION ERROR')
+    try:
+        updateStopDockLog = "INSERT INTO log_server (UID, STATUS, DOCK, TARGET_TIME, TOTAL_TIME, TIME, DATA) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        valStopDockLog = uidStopCount, "STOP", int(dockCode), TargetStopCount, durationStopCount, str(now), "OUT/STOP"
+        cursor.execute(updateStopDockLog, valStopDockLog)
+        # logger.info(f'[BOOKING]       :   [LOG] {valBookingLog}')
+        mydb.commit()
+        logger.info(f'[START DOCK]    :   [DOCK {dockCode}] [LOG] SUCCESCFULLY UPDATE TO LOG DB DOCK {dockCode}')
+    except:
+        logger.error(f'[START DOCK]   :   [DOCK {dockCode}] [LOG] INSERT TO LOG ERROR')
     try:
         updateStopDock = "UPDATE loading_dock SET STATUS = %s, LAST_UPDATE = %s  WHERE ID = %s"
         valStopDock = ["STOP", str(now), int(dockCode)]
@@ -289,47 +325,107 @@ async def dockStop(request, dockCode):
         logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE TO DOCK {dockCode}')
     except:
         logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [QUERY] UPDATE ERROR')
-    ipStop = await getIPdisplay(dockCode)
-    URL_STOP = f'http://{ipStop}'
-    dataStop = {'alarm':0}
     try:
-        logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_STOP}')
-        rStop = await requests.post(URL_STOP, json=dataStop, timeout = 2)
-        logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
-        #AWAIT STAT ALARM
+        #GET STAT ALARM IF ALARM STATUS ON
+        sqlGetAlarmDock = "SELECT STATUS FROM dock_alarm WHERE ID = %s"
+        cursor.execute(sqlGetAlarmDock, [dockCode,])
+        dataStat = cursor.fetchone()
+        statAlarmDock = dataStat[0]
+        logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY SELECT STAT ALARM')
     except:
-        logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [SEND DISPLAY] SEND TO DISPLAY ERROR')
-        pullHFERROR = "INSERT INTO send_error (STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s)"
-        valHFERROR = 'ALARMOFF', URL_STOP, str(now), "TO DISPLAY"
-        cursor.execute(pullHFERROR, valHFERROR)
-        logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [SEND DISPLAY] SAVE TO DB PULLING')
-        app.add_task(trySendDisplay())
-    try:
-        updatedockAlarm = "UPDATE dock_alarm SET ALARM = %s, TIME_ALARM = %s, STATUS = %s WHERE ID = %s"
-        valdockAlarm = [None, None, None, int(dockCode)]
-        cursor.execute(updatedockAlarm,valdockAlarm)
-        mydb.commit()
-        logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE TO DOCK {dockCode}')
-    except:
-        logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [QUERY] UPDATE ERROR')
+        statAlarmDock  = "notfound"
+        logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [QUERY] SELECT STAT ALARM ERROR')
+    if statAlarmDock == 'ON':
+        ipStop = await getIPdisplay(dockCode)
+        URL_STOP = f'http://{ipStop}'
+        dataStop = {'alarm':0}
+        try:
+            logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_STOP}')
+            rStop = await requests.post(URL_STOP, json=dataStop, timeout = 2)
+            logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+            #AWAIT STAT ALARM
+        except:
+            logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+            pullHFERROR = "INSERT INTO send_error (STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s)"
+            valHFERROR = 'ALARMOFF', URL_STOP, str(now), "TO DISPLAY"
+            cursor.execute(pullHFERROR, valHFERROR)
+            logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [SEND DISPLAY] SAVE TO DB PULLING')
+            app.add_task(trySendDisplay())
+        try:
+            updateAlarmENDLog = "INSERT INTO log_alarm (UID, DOCK, STATUS, NOTE, TIME) VALUES (%s, %s, %s, %s, %s)"
+            valAlarmENDLog = uidStopCount, int(dockCode), 'ALARM OFF', "DOCK STOP", str(now)
+            cursor.execute(updateAlarmENDLog, valAlarmENDLog)
+            # logger.info(f'[BOOKING]       :   [LOG] {valBookingLog}')
+            mydb.commit()
+            logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [LOG] SUCCESCFULLY UPDATE TO LOG ALARM')
+        except:
+            logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [LOG] INSERT TO LOG ERROR')
+        try:
+            updatedockAlarm = "UPDATE dock_alarm SET ALARM = %s, TIME_ALARM = %s, STATUS = %s WHERE ID = %s"
+            valdockAlarm = [None, None, None, int(dockCode)]
+            cursor.execute(updatedockAlarm,valdockAlarm)
+            mydb.commit()
+            logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE TO DOCK {dockCode}')
+        except:
+            logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [QUERY] UPDATE ERROR')
 
-
-
-    return response.json({'totalTime': durationStopCount})
+        ipStateStop = await getIPdisplay(dockCode)
+        URL_StateStop = f'http://{ipStateStop}'
+        dataStateStop = {'State':0}
+        try:
+            logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_StateStop}')
+            rHF = await requests.post(URL_StateStop, json=dataStateStop, timeout = 2)
+            logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+        except:
+            logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+            pullHFERROR = "INSERT INTO send_error (STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s)"
+            valHFERROR = 'STOP', URL_StateStop, str(now), "TO DISPLAY"
+            cursor.execute(pullHFERROR, valHFERROR)
+            logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [SEND DISPLAY] SAVE TO DB PULLING')
+            app.add_task(trySendDisplay())
+    return json({'totalTime': durationStopCount})
 
 
 
 
 @gateway.route("/dock/alarm-stop/<dockCode>", methods=['GET','POST'])
 async def dockAlarmStop(request, dockCode):
+    now = datetime.now()
+    date_ = now.strftime("%Y%m%d")
+    time_ = now.strftime("%H:%M:%S")
     logger.info(f"[DATA IN]       :  {request.body.decode('utf-8')}")
     # print(database.is_connected)
-    data_dock = dict(eval(request.body.decode('utf-8')))
+    ###kudu tanya fahmi/mas sigit
+    try:
+        updateAlarmStopLog = "INSERT INTO log_alarm (DOCK, STATUS, NOTE, TIME) VALUES (%s, %s, %s, %s, %s)"
+        valAlarmStopLog = int(dockCode), 'ALARM OFF', "END ALARM FROM SERVER", str(now)
+        cursor.execute(updateAlarmStopLog, valAlarmStopLog)
+        # logger.info(f'[BOOKING]       :   [LOG] {valBookingLog}')
+        mydb.commit()
+        logger.info(f'[STOP ALARM]    :   [DOCK {dockCode}] [LOG] SUCCESCFULLY UPDATE TO LOG ALARM')
+    except:
+        logger.error(f'[STOP ALARM]   :   [DOCK {dockCode}] [LOG] INSERT TO LOG ERROR')
+    ipStopAlarm = await getIPdisplay(dockCode)
+    URL_STOPAlarm = f'http://{ipStop}'
+    dataStopAlarm = {'alarm':0}
+    try:
+        logger.info(f'[STOP ALARM]    :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_STOP}')
+        rStopAlarm = await requests.post(URL_STOPALARM, json=dataStopAlarm, timeout = 2)
+        logger.info(f'[STOP ALARM]    :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+        #AWAIT STAT ALARM
+    except:
+        logger.error(f'[STOP ALARM]   :   [DOCK {dockCode}] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+        pullHFERROR = "INSERT INTO send_error (STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s)"
+        valHFERROR = 'ALARMOFF', URL_STOP, str(now), "TO DISPLAY"
+        cursor.execute(pullHFERROR, valHFERROR)
+        logger.error(f'[STOP ALARM]   :   [DOCK {dockCode}] [SEND DISPLAY] SAVE TO DB PULLING')
+        app.add_task(trySendDisplay())
+
     return text('OK')
 
 @gateway.route("/dock/alarm-start/<num>", methods=['GET','POST'])
 async def dockAlarmStart(request, dockCode):
     logger.info(f"[DATA IN]       :  {request.body.decode('utf-8')}")
     # print(database.is_connected)
-    data_dock = dict(eval(request.body.decode('utf-8')))
+
     return text('OK')
