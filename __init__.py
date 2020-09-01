@@ -1,5 +1,4 @@
 from sanic import Sanic, Blueprint
-from databases import Database
 import asyncio
 import MySQLdb
 import logging
@@ -51,7 +50,7 @@ while(SQLCONNECT):
         # URL_ALARM = f'http://{dat[0]}'
         SQLCONNECT = False
     except:
-        logger.info("[SQL SERVER]   :   NOT CONNECTED")
+        logger.info("[SQL SERVER]    :   NOT CONNECTED")
         time.sleep(5)
 
 app = Sanic(__name__)
