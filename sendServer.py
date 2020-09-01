@@ -34,7 +34,7 @@ async def sendErrorDisplay():
                 logger.error(f'[PULL BOOKING] : [SEND DISPLAY]  SEND TO DISPLAY ERROR')
         elif statErrorBook == 'START':
             try:
-                dataErrorBook = {'State':1}
+                dataErrorBook = {'state':"1"}
                 logger.info(f'[PULL START]    : [SEND DISPLAY]  SEND POST {dataErrorBook}')
                 rBookingError = await requests.post(urlErrorBook, json=dataErrorBook, timeout = 2)
                 logger.info(f'[PULL START]    : [SEND DISPLAY]  SUCCESCFULLY SEND POST TO DISPLAY')
@@ -45,18 +45,18 @@ async def sendErrorDisplay():
                 logger.error(f'[PULL START]   : [SEND DISPLAY]  SEND TO DISPLAY ERROR')
         elif statErrorBook == 'STOP':
             try:
-                dataErrorBook = {'State':0}
-                logger.info(f'[PULL START]    : [SEND DISPLAY]  SEND POST {dataErrorBook}')
+                dataErrorBook = {'state':"0"}
+                logger.info(f'[PULL STOP]     : [SEND DISPLAY]  SEND POST {dataErrorBook}')
                 rBookingError = await requests.post(urlErrorBook, json=dataErrorBook, timeout = 2)
-                logger.info(f'[PULL START]    : [SEND DISPLAY]  SUCCESCFULLY SEND POST TO DISPLAY')
+                logger.info(f'[PULL STOP]     : [SEND DISPLAY]  SUCCESCFULLY SEND POST TO DISPLAY')
                 sqldelBook = 'DELETE FROM send_error WHERE id = %s'
                 cursor.execute(sqldelBook, [idErrorBook,])
                 mydb.commit()
             except:
-                logger.error(f'[PULL START]   : [SEND DISPLAY]  SEND TO DISPLAY ERROR')
+                logger.error(f'[PULL STOP]    : [SEND DISPLAY]  SEND TO DISPLAY ERROR')
         elif statErrorBook == 'ALARMCOUNT':
             try:
-                dataErrorBook = {'alarm':1}
+                dataErrorBook = {'alarm':"1"}
                 logger.info(f'[PULL COUNT]    : [SEND DISPLAY]  SEND POST {dataErrorBook}')
                 rBookingError = await requests.post(urlErrorBook, json=dataErrorBook, timeout = 2)
                 logger.info(f'[PULL COUNT]    : [SEND DISPLAY]  SUCCESCFULLY SEND POST TO DISPLAY')
@@ -67,7 +67,7 @@ async def sendErrorDisplay():
                 logger.error(f'[PULL COUNT]   : [SEND DISPLAY]  SEND TO DISPLAY ERROR')
         elif statErrorBook == 'ALARMOFF':
             try:
-                dataErrorBook = {'alarm':0}
+                dataErrorBook = {'alarm':"0"}
                 logger.info(f'[PULL STOP]     : [SEND DISPLAY]  SEND POST {dataErrorBook}')
                 rBookingError = await requests.post(urlErrorBook, json=dataErrorBook, timeout = 2)
                 logger.info(f'[PULL STOP]     : [SEND DISPLAY]  SUCCESCFULLY SEND POST TO DISPLAY')
