@@ -4,16 +4,19 @@ import pyodbc
 from datetime import datetime, date, timedelta
 import MySQLdb
 async def dbServer():
-    global cursorsql, conn
-    sqlDbServer = "SELECT ip, port, dbname, dbport, dbuid, dbpass FROM ipserver"
-    cursor.execute(sqlDbServer)
-    datDbServer = cursor.fetchone()
-    conn = pyodbc.connect(driver='{ODBC Driver 17 for SQL Server}',
-                                   server=f'{datDbServer[0]},{datDbServer[3]}',
-                                   database=f'{datDbServer[2]}',
-                                   uid=f'{datDbServer[4]}',pwd=f'{datDbServer[5]}')
-    cursorsql = conn.cursor()
-    logger.info("[SQL SERVER]   :   SUCCESCFULLY CONNECTED to SQL SERVER")
+    try:
+        global cursorsql, conn
+        sqlDbServer = "SELECT ip, port, dbname, dbport, dbuid, dbpass FROM ipserver"
+        cursor.execute(sqlDbServer)
+        datDbServer = cursor.fetchone()
+        conn = pyodbc.connect(driver='{ODBC Driver 17 for SQL Server}',
+                                       server=f'{datDbServer[0]},{datDbServer[3]}',
+                                       database=f'{datDbServer[2]}',
+                                       uid=f'{datDbServer[4]}',pwd=f'{datDbServer[5]}', timeout=3)
+        cursorsql = conn.cursor()
+        logger.info("[SQL SERVER]    :   SUCCESCFULLY CONNECTED to SQL SERVER")
+    except:
+        logger.error(f'[SQL SERVER]   :   NOT CONNECTED')
 
 
 async def reconnenctToDbServer():
@@ -27,6 +30,7 @@ async def reconnenctToDbServer():
         cursorsql.execute(testping)
         testype = cursorsql.fetchone()
         tstp = testype
+
         logger.info("[DB SERVER]     :   CONNECTED to DB SERVER")
     except:
         try:
