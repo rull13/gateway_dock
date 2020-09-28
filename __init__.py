@@ -41,13 +41,12 @@ while(SQLCONNECT):
         dbname = f'{dat[2]}'
         dbuid = f'{dat[4]}'
         dbpwd = f'{dat[5]}'
-        conn = pyodbc.connect(driver='{ODBC Driver 17 for SQL Server}',
-                                       server=SERVER,
-                                       database=dbname,
-                                       uid=dbuid,pwd=dbpwd)
-        cursorsql = conn.cursor()
-        logger.info("[SQL SERVER]    :   SUCCESCFULLY CONNECTED to SQL SERVER")
-        # URL_ALARM = f'http://{dat[0]}'
+        # conn = pyodbc.connect(driver='{ODBC Driver 17 for SQL Server}',
+        #                                server=SERVER,
+        #                                database=dbname,
+        #                                uid=dbuid,pwd=dbpwd)
+        # cursorsql = conn.cursor()
+        # logger.info("[SQL SERVER]    :   SUCCESCFULLY CONNECTED to SQL SERVER")
         SQLCONNECT = False
     except:
         logger.info("[SQL SERVER]    :   NOT CONNECTED")
