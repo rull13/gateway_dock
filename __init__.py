@@ -7,8 +7,10 @@ import time
 import pyodbc
 import os
 
-formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
-
+LOGFORMAT = "  %(log_color)s%(levelname)-8s%(reset)s | %(asctime)s %(log_color)s%(message)s%(reset)s"
+from colorlog import ColoredFormatter
+# formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
+formatter = ColoredFormatter(LOGFORMAT)
 logname = f'logs/polytama-dev.log'
 handler = TimedRotatingFileHandler(logname, when="midnight", interval=1)
 handler.setFormatter(formatter)
