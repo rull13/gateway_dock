@@ -12,17 +12,17 @@ import requests_async as requests
 gateway = Blueprint('gateway', url_prefix='')
 
 
-async def trySendDisplay():
+async def trySendDisplay(dockNum = None, dockStat = None):
     await asyncio.sleep(30)
-    trySend = await sendErrorDisplay()
+    trySend = await sendErrorDisplay(dockNum,dockStat)
     if not trySend:
-        app.add_task(trySendDisplay())
+        app.add_task(trySendDisplay(dockNum, dockStat))
 
-async def trySendHfServer():
+async def trySendHfServer(dockNum = None, dockStat = None):
     await asyncio.sleep(30)
-    trySendHF = await sendErrorTapIn()
+    trySendHF = await sendErrorTapIn(dockNum, dockStat)
     if not trySendHF:
-        app.add_task(trySendHfServer())
+        app.add_task(trySendHfServer(dockNum, dockStat))
 
 # app.add_task(reconnenctToDbServer())
 app.add_task(reconMysql())
@@ -93,16 +93,16 @@ async def startDurationLoading(dockCode):
                 URL_ALARM_COUNT = f'http://{ipDisplay}'
                 dataALARMCOUNT = {'alarm':"1"}
                 try:
-                    logger.info(f'[COUNT DOCK]    :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_ALARM_COUNT}')
+                    logger.info(f'[COUNT DOCK]    :   [DOCK {dockCode}] [SEND DISPLAY] [ALARM] SEND {dataALARMCOUNT} {URL_ALARM_COUNT}')
                     rCOUNT = await requests.post(URL_ALARM_COUNT, json=dataALARMCOUNT, timeout = 5)
-                    logger.info(f'[COUNT DOCK]    :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND POST TO DISPLAY')
+                    logger.info(f'[COUNT DOCK]    :   [DOCK {dockCode}] [SEND DISPLAY] [ALARM] SUCCESCFULLY SEND POST TO DISPLAY')
                 except:
-                    logger.error(f'[COUNT DOCK]   :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+                    logger.error(f'[COUNT DOCK]   :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] [ALARM] SEND TO DISPLAY ERROR')
                     pullCOUNTError = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
                     valCOUNTError = dockCode, 'ALARMCOUNT', URL_ALARM_COUNT, str(dateTimeNow), "TO DISPLAY"
                     cursor.execute(pullCOUNTError, valCOUNTError)
-                    logger.error(f'[COUNT DOCK]   :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-                    app.add_task(trySendDisplay())
+                    logger.error(f'[COUNT DOCK]   :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] [ALARM] SAVE TO DB PULLING')
+                    app.add_task(trySendDisplay(dockCode, 'ALARMCOUNT'))
                 try:
                     updateAlarmLog = "INSERT INTO log_alarm (UID, DOCK, STATUS, NOTE, TIME) VALUES (%s, %s, %s, %s, %s)"
                     valAlarmLog = uidCount, dockCode, 'ALARM ON', "OVERTIME",str(dateTimeNow)
@@ -171,7 +171,7 @@ async def dockBook(request, dockCode):
         valBookError = dockCode, policeNumber, 'BOOKING', URL_BOOK, str(now), "TO DISPLAY"
         cursor.execute(pullBookError, valBookError)
         logger.error(f'[BOOKING]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-        app.add_task(trySendDisplay())
+        app.add_task(trySendDisplay(dockCode, 'BOOKING'))
         # app.add_task(sendEmailLog(f'ERROR SEND TO DISPLAY {dockCode}', 'BOOKING'))
 
     mydb.commit()
@@ -187,6 +187,25 @@ async def dockHF(request, dockCode):
     if dataEPC == "OK":
         return text("OK")
     elif dataEPC == "1":
+        try:
+            getReqActive = "SELECT UID, POLICE_NO, STATUS, TYPE FROM loading_dock WHERE DOCK = %s"
+            cursor.execute(getReqActive, [dockCode, ])
+            GetActive = cursor.fetchone()
+            GetActiveStat = GetActive[3]
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] STATUS DOCK {GetActiveStat}')
+        except:
+            GetActiveStat = "notfound"
+        if GetActiveStat != "notfound":
+            if GetActiveStat == 'DISABLE':
+                dataActive = {"active":"0"}
+                ipDisplay = await getIPdisplay(dockCode)
+                URL_BOOK = f'http://{ipDisplay}'
+                try:
+                    rBooking = await requests.post(URL_BOOK, json=dataActive, timeout = 5)
+                    logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK} {dataActive} TO DISPLAY')
+                except:
+                    logger.error(f'[HF RFID]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] ERROR SEND {dataActive}')
+        mydb.commit()
         return text("OK")
     try:
         updateHFLog = "INSERT INTO log_rfid (UID, DOCK, TIME) VALUES (%s, %s, %s)"
@@ -247,7 +266,7 @@ async def dockHF(request, dockCode):
             cursor.execute(pullHFERROR, valHFERROR)
             mydb.commit()
             logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-            app.add_task(trySendDisplay())
+            app.add_task(trySendDisplay(dockCode, 'START'))
 
         dataHF = {'uid':dataEPC,
                 'dockCode':dockCode,
@@ -266,7 +285,7 @@ async def dockHF(request, dockCode):
             cursor.execute(pullHFERROR, valHFERROR)
             mydb.commit()
             logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SAVE TO DB PULLING')
-            app.add_task(trySendHfServer())
+            app.add_task(trySendHfServer(dockCode, 'TAP'))
         try:
             updateDockCount = "UPDATE dock_time_count SET UID = %s, STATUS = %s WHERE DOCK = %s"
             valDockCount = [dataEPC, 'TAP', dockCode]
@@ -293,7 +312,7 @@ async def dockHF(request, dockCode):
                 cursor.execute(pullHFERROR, valHFERROR)
                 mydb.commit()
                 logger.error(f'[HF RIFD]      :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-                app.add_task(trySendDisplay())
+                app.add_task(trySendDisplay(dockCode2, 'START'))
             try:
                 updateDockCount2 = "UPDATE dock_time_count SET UID = %s, STATUS = %s WHERE DOCK = %s"
                 valDockCount2 = [UidDb2, 'TAP', dockCode2]
@@ -322,7 +341,7 @@ async def dockHF(request, dockCode):
             cursor.execute(pullHFERROR, valHFERROR)
             mydb.commit()
             logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SAVE TO DB PULLING')
-            app.add_task(trySendHfServer())
+            app.add_task(trySendHfServer(dockCode, 'TERPAL'))
         try:
             updateTerpalDock = "UPDATE loading_dock SET UID = %s, POLICE_NO = %s, STATUS = %s, LAST_UPDATE = %s  WHERE DOCK = %s"
             valTerpalDock = [None, None, "STOP", str(now), dockCode]
@@ -528,7 +547,7 @@ async def dockStop(request, dockCode):
             valHFERROR = dockCode, 'ALARMOFF', URL_STOP, str(now), "TO DISPLAY"
             cursor.execute(pullHFERROR, valHFERROR)
             logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-            app.add_task(trySendDisplay())
+            app.add_task(trySendDisplay(dockCode, 'ALARMOFF'))
         try:
             updateAlarmENDLog = "INSERT INTO log_alarm (UID, DOCK, STATUS, NOTE, TIME) VALUES (%s, %s, %s, %s, %s)"
             valAlarmENDLog = uidStopCount, dockCode, 'ALARM OFF', "DOCK STOP", str(now)
@@ -562,7 +581,7 @@ async def dockStop(request, dockCode):
         cursor.execute(pullHFERROR, valHFERROR)
         mydb.commit()
         logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-        app.add_task(trySendDisplay())
+        app.add_task(trySendDisplay(dockCode, 'STOP'))
 
     if uidStopCount == uidStopCount2:
         logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] DOUBLE DECK DETECT')
@@ -603,7 +622,7 @@ async def dockStop(request, dockCode):
                 valHFERROR2 = dockCode2, 'ALARMOFF', URL_STOP2, str(now), "TO DISPLAY"
                 cursor.execute(pullHFERROR2, valHFERROR2)
                 logger.error(f'[STOP DOCK]    :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-                app.add_task(trySendDisplay())
+                app.add_task(trySendDisplay(dockCode2, 'ALARMOFF'))
         try:
             updatedockAlarm2 = "UPDATE dock_alarm SET ALARM = %s, TIME_ALARM = %s, STATUS = %s WHERE DOCK = %s"
             valdockAlarm2 = [None, None, None, dockCode2]
@@ -628,7 +647,7 @@ async def dockStop(request, dockCode):
             cursor.execute(pullHFERROR2, valHFERROR2)
             mydb.commit()
             logger.error(f'[STOP DOCK]    :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-            app.add_task(trySendDisplay())
+            app.add_task(trySendDisplay(dockCode2, "STOP"))
     mydb.commit()
     return json({'totalTime': durationStopCount})
 
@@ -667,7 +686,7 @@ async def dockAlarmStop(request, dockCode):
         cursor.execute(pullHFERROR, valHFERROR)
         mydb.commit()
         logger.error(f'[STOP ALARM]   :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-        app.add_task(trySendDisplay())
+        app.add_task(trySendDisplay(dockCode, 'ALARMOFF'))
     mydb.commit()
     return text('OK')
 
@@ -719,7 +738,7 @@ async def dockDisable(request, dockCode):
         cursor.execute(pullDISABLEERROR, valDISABLEERROR)
         mydb.commit()
         logger.error(f'[DISABLE DOCK] :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-        app.add_task(trySendDisplay())
+        app.add_task(trySendDisplay(dockCode, 'DISABLE'))
     mydb.commit()
     return text('OK')
 
@@ -764,7 +783,7 @@ async def dockEnable(request, dockCode):
         cursor.execute(pullENABLEERROR, valENABLEERROR)
         mydb.commit()
         logger.error(f'[ENABLE DOCK]  :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-        app.add_task(trySendDisplay())
+        app.add_task(trySendDisplay(dockCode, 'ENABLE'))
     mydb.commit()
     return text('OK')
 
