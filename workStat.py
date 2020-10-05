@@ -4,7 +4,6 @@ import asyncio
 from  gateway_dock import cursor, app, mydb
 
 async def timetypeid():
-    from gateway_dock.config import cursorsql, conn
     '''
     SEARCH ID DAY IN SERVER
     WILL RETURN TIME START WORK, TIME END WORK, AND SHIFT ID
@@ -23,28 +22,28 @@ async def timetypeid():
     datefrom = "0000-00-00"
     dateto = "0000-00-00"
     try:
-        sqlfasting = "SELECT DATE_FROM, DATE_TO FROM FASTING WHERE ? BETWEEN DATE_FROM AND DATE_TO"
-        cursorsql.execute(sqlfasting,datenow)
-        fasting = cursorsql.fetchone()
-        conn.commit()
-        datefrom = fasting[0]
-        dateto = fasting[1]
+        sqlfasting = "SELECT dateFrom, dateTo FROM fasting WHERE %s BETWEEN dateFrom AND dateTo"
+        cursor.execute(sqlfasting,[str(datenow),])
+        fasting = cursor.fetchone()
+        mydb.commit()
+        datefrom = str(fasting[0])
+        dateto = str(fasting[1])
     except:
         pass
     if datefrom != dateto:
-        if datefrom <= datenow <= dateto:
+        if datefrom <= str(datenow) <= dateto:
             udn = udn + 'F'
     try:
-        sqltimetype = "SELECT ID FROM TIME_TYPE WHERE CODE = ?"
-        value = [udn]
-        cursorsql.execute(sqltimetype, (value))
-        timetype = cursorsql.fetchone()
+        sqltimetype = "SELECT id FROM timetype WHERE CODE = %s"
+        value = [udn,]
+        cursor.execute(sqltimetype, (value))
+        timetype = cursor.fetchone()
         timeid = timetype[0]
-        conn.commit()
+        mydb.commit()
     except:
         pass
-    return [timeid, timenow, now]
 
+    return [timeid, timenow, now]
 
 
 class Timeshift():
@@ -55,7 +54,7 @@ class Timeshift():
         COMPRAING TIME REAL AND TIME SHIFT
         AND MAKE THIS GATEWAY CANT SAVE THE DATA
         '''
-        from gateway_dock.config import cursorsql, conn
+
         typeid = await timetypeid()
         timeid = typeid[0]
         timenow = typeid[1]
@@ -67,13 +66,13 @@ class Timeshift():
                 '''
                 WIIL TRY SEARCHING IF TIME NOW BETWEEN TIME WORK
                 '''
-                sqlsequen = "SELECT TIME_FROM, TIME_TO, BREAK_FLAG FROM WORK_TIME WHERE TIME_TYPE_ID = ?"
-                sqlsequen2 = " AND ? BETWEEN TIME_FROM AND TIME_TO"
+                sqlsequen = "SELECT timeFrom, timeTo, breakFlag FROM worktime WHERE timeTypeId = %s"
+                sqlsequen2 = " AND %s BETWEEN timeFrom AND timeTo"
                 sql = sqlsequen+sqlsequen2
                 value = [timeid, timenow]
-                cursorsql.execute(sql, (value))
-                timeseq = cursorsql.fetchone()
-                conn.commit()
+                cursor.execute(sql, (value))
+                timeseq = cursor.fetchone()
+                mydb.commit()
                 timefrom = timeseq[0]
                 timeto = timeseq[1]
                 breakflag = timeseq[2]
@@ -85,13 +84,13 @@ class Timeshift():
                 THIS LINE WORKING IF TIME START AND TIME END HAVE A DIFFERENT DAY
                 TIME NOW HAS A SAME DAY WITH TIME END WORK
                 '''
-                sqlsequen = "SELECT TIME_FROM, TIME_TO, BREAK_FLAG FROM WORK_TIME WHERE TIME_TYPE_ID = ?"
-                sqlsequen2 = " AND TIME_FROM BETWEEN TIME_TO AND ?"
+                sqlsequen = "SELECT timeFrom, timeTo, breakFlag FROM worktime WHERE timeTypeId = %s"
+                sqlsequen2 = " AND timeFrom BETWEEN timeTo AND %s"
                 sql = sqlsequen+sqlsequen2
                 value = [timeid, timenow]
-                cursorsql.execute(sql, (value))
-                timeseq = cursorsql.fetchone()
-                conn.commit()
+                cursor.execute(sql, (value))
+                timeseq = cursor.fetchone()
+                mydb.commit()
                 timefrom = timeseq[0]
                 timeto = timeseq[1]
                 breakflag = timeseq[2]
@@ -103,13 +102,13 @@ class Timeshift():
                 THIS LINE WORKING IF TIME START AND TIME END HAVE A DIFFERENT DAY
                 TIME NOW HAS A SAME DAY WITH TIME START WORK
                 '''
-                sqlsequen = "SELECT TIME_FROM, TIME_TO, BREAK_FLAG FROM WORK_TIME WHERE TIME_TYPE_ID = ?"
-                sqlsequen2 = " AND TIME_TO BETWEEN ? AND TIME_FROM"
+                sqlsequen = "SELECT timeFrom, timeTo, breakFlag FROM worktime WHERE timeTypeId = %s"
+                sqlsequen2 = " AND timeTo BETWEEN %s AND timeFrom"
                 sql = sqlsequen+sqlsequen2
                 value = [timeid, timenow]
-                cursorsql.execute(sql, (value))
-                timeseq = cursorsql.fetchone()
-                conn.commit()
+                cursor.execute(sql, (value))
+                timeseq = cursor.fetchone()
+                mydb.commit()
                 timefrom = timeseq[0]
                 timeto = timeseq[1]
                 breakflag = timeseq[2]
@@ -117,7 +116,7 @@ class Timeshift():
                 pass
         # print(f"TIME START WORK: {timefrom}")
         # print(f"TIME END WORK: {timeto}")
-        if timefrom != timeto and breakflag.upper() != 'YES':
+        if timefrom != timeto and breakflag.upper() != 'Y':
             '''
             IF TIME WORK START
             '''
@@ -127,44 +126,44 @@ class Timeshift():
             IF TIME WORK END
             '''
             return [breakflag, timefrom, timeto, timeid, 'WORK_OFF']
-
-    async def overtime(self):
-        '''
-        THIS CODE WILL EXCEUTE WHEN
-        SHIFT 2 TIME IS OVER
-        COMPRAING TIME REAL AND TIME SHIFT
-        AND MAKE THIS GATEWAY CANT SAVE THE DATA
-        '''
-        from gateway_dock.config import cursorsql, conn
-        typeid = await timetypeid()
-        timeid = typeid[0]
-        timenow = typeid[1]
-        timedatetime = typeid[2]
-        timefrom ="OFF"
-        timeto = "OFF"
-        if timeid != 'OFF':
-
-            try:
-                sqlbreak = "SELECT DATETIME_FROM, DATETIME_TO FROM OVERTIME WHERE "
-                sqlbreak2 = "? BETWEEN DATETIME_FROM AND DATETIME_TO"
-                sql = sqlbreak+sqlbreak2
-                value = [timedatetime]
-                cursorsql.execute(sql, (value))
-                timeseq = cursorsql.fetchone()
-                conn.commit()
-                timefrom = timeseq[0]
-                timeto = timeseq[1]
-            except:
-                pass
-        # print(f"TIME START REST: {timefrom}")
-        # print(f"TIME END REST: {timeto}")
-        if timefrom != timeto:
-            '''
-            OVERTIME START
-            '''
-            return [timefrom.time(), timeto.time(), 'OVERTIME_ON']
-        else:
-            '''
-            OVERTIME END
-            '''
-            return [timefrom, timeto, 'OVERTIME_OFF']
+    #
+    # async def overtime(self):
+    #     '''
+    #     THIS CODE WILL EXCEUTE WHEN
+    #     SHIFT 2 TIME IS OVER
+    #     COMPRAING TIME REAL AND TIME SHIFT
+    #     AND MAKE THIS GATEWAY CANT SAVE THE DATA
+    #     '''
+    #     from gateway_dock.config import cursorsql, conn
+    #     typeid = await timetypeid()
+    #     timeid = typeid[0]
+    #     timenow = typeid[1]
+    #     timedatetime = typeid[2]
+    #     timefrom ="OFF"
+    #     timeto = "OFF"
+    #     if timeid != 'OFF':
+    #
+    #         try:
+    #             sqlbreak = "SELECT DATETIME_FROM, DATETIME_TO FROM OVERTIME WHERE "
+    #             sqlbreak2 = "? BETWEEN DATETIME_FROM AND DATETIME_TO"
+    #             sql = sqlbreak+sqlbreak2
+    #             value = [timedatetime]
+    #             cursorsql.execute(sql, (value))
+    #             timeseq = cursorsql.fetchone()
+    #             conn.commit()
+    #             timefrom = timeseq[0]
+    #             timeto = timeseq[1]
+    #         except:
+    #             pass
+    #     # print(f"TIME START REST: {timefrom}")
+    #     # print(f"TIME END REST: {timeto}")
+    #     if timefrom != timeto:
+    #         '''
+    #         OVERTIME START
+    #         '''
+    #         return [timefrom.time(), timeto.time(), 'OVERTIME_ON']
+    #     else:
+    #         '''
+    #         OVERTIME END
+    #         '''
+    #         return [timefrom, timeto, 'OVERTIME_OFF']
