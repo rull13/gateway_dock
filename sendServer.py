@@ -4,24 +4,43 @@ from datetime import datetime, date, timedelta
 import MySQLdb
 import requests_async as requests
 
-async def sendErrorDisplay():
-    try:
-        errorBooking = "SELECT ID, DOCK, POLICE_NO, STATUS, URL FROM send_error WHERE SEND_STATUS = %s ORDER BY ID ASC LIMIT 1"
-        cursor.execute(errorBooking, ["TO DISPLAY"])
-        valErrorBooking = cursor.fetchone()
-        idErrorBook = valErrorBooking[0]
-        DockErrorBook = valErrorBooking[1]
-        ErrorNoPol = valErrorBooking[2]
-        statErrorBook = valErrorBooking[3]
-        urlErrorBook = valErrorBooking[4]
-        sendErrorBookStat = True
-    except:
-        idErrorBook = 'OFF'
-        DockErrorBook = 'OFF'
-        urlErrorBook = 'OFF'
-        ErrorNoPol = "OFF"
-        statErrorBook = "OFF"
-        sendErrorBookStat = False
+async def sendErrorDisplay(dock=None, dockStatus=None):
+    if dock and dockStatus:
+        try:
+            errorBooking = "SELECT ID, DOCK, POLICE_NO, STATUS, URL FROM send_error WHERE SEND_STATUS = %s and DOCK = %s and STATUS = %s ORDER BY ID ASC LIMIT 1"
+            cursor.execute(errorBooking, ["TO DISPLAY", dock, dockStatus])
+            valErrorBooking = cursor.fetchone()
+            idErrorBook = valErrorBooking[0]
+            DockErrorBook = valErrorBooking[1]
+            ErrorNoPol = valErrorBooking[2]
+            statErrorBook = valErrorBooking[3]
+            urlErrorBook = valErrorBooking[4]
+            sendErrorBookStat = True
+        except:
+            idErrorBook = 'OFF'
+            DockErrorBook = 'OFF'
+            urlErrorBook = 'OFF'
+            ErrorNoPol = "OFF"
+            statErrorBook = "OFF"
+            sendErrorBookStat = False
+    else:
+        try:
+            errorBooking = "SELECT ID, DOCK, POLICE_NO, STATUS, URL FROM send_error WHERE SEND_STATUS = %s ORDER BY ID ASC LIMIT 1"
+            cursor.execute(errorBooking, ["TO DISPLAY"])
+            valErrorBooking = cursor.fetchone()
+            idErrorBook = valErrorBooking[0]
+            DockErrorBook = valErrorBooking[1]
+            ErrorNoPol = valErrorBooking[2]
+            statErrorBook = valErrorBooking[3]
+            urlErrorBook = valErrorBooking[4]
+            sendErrorBookStat = True
+        except:
+            idErrorBook = 'OFF'
+            DockErrorBook = 'OFF'
+            urlErrorBook = 'OFF'
+            ErrorNoPol = "OFF"
+            statErrorBook = "OFF"
+            sendErrorBookStat = False
     if sendErrorBookStat:
         if statErrorBook == 'BOOKING':
             #ada dockCode
@@ -119,28 +138,51 @@ async def sendErrorDisplay():
         mydb.commit()
         return True
 
-async def sendErrorTapIn():
-    try:
-        errorHFServer = "SELECT ID, UID, DOCK,  STATUS, URL, TIME, TOTALTIME FROM send_error WHERE SEND_STATUS = %s ORDER BY ID ASC LIMIT 1"
-        cursor.execute(errorHFServer, ["TAP START IN"])
-        valErrorHFServer = cursor.fetchone()
-        idErrorHF = valErrorHFServer[0]
-        uidErrorHF = valErrorHFServer[1]
-        DockErrorHF = valErrorHFServer[2]
-        statErrorHF = valErrorHFServer[3]
-        TimeErrorHF = valErrorHFServer[5]
-        urlErrorHF = valErrorHFServer[4]
-        totalTImeErrorHF = valErrorHFServer[6]
-        sendErrorHF = True
-    except:
-        idErrorHF = 'OFF'
-        uidErrorHF = 'OFF'
-        DockErrorHF = 'OFF'
-        TimeErrorHF = 'OFF'
-        urlErrorHF = 'OFF'
-        statErrorHF = 'OFF'
-        totalTImeErrorHF = 'OFF'
-        sendErrorHF = False
+async def sendErrorTapIn(dock = None, dockStatus = None):
+    if dock and dockStatus:
+        try:
+            errorHFServer = "SELECT ID, UID, DOCK,  STATUS, URL, TIME, TOTALTIME FROM send_error WHERE SEND_STATUS = %s  and DOCK = %s and STATUS = %s ORDER BY ID ASC LIMIT 1"
+            cursor.execute(errorHFServer, ["TAP START IN", dock, dockStatus])
+            valErrorHFServer = cursor.fetchone()
+            idErrorHF = valErrorHFServer[0]
+            uidErrorHF = valErrorHFServer[1]
+            DockErrorHF = valErrorHFServer[2]
+            statErrorHF = valErrorHFServer[3]
+            TimeErrorHF = valErrorHFServer[5]
+            urlErrorHF = valErrorHFServer[4]
+            totalTImeErrorHF = valErrorHFServer[6]
+            sendErrorHF = True
+        except:
+            idErrorHF = 'OFF'
+            uidErrorHF = 'OFF'
+            DockErrorHF = 'OFF'
+            TimeErrorHF = 'OFF'
+            urlErrorHF = 'OFF'
+            statErrorHF = 'OFF'
+            totalTImeErrorHF = 'OFF'
+            sendErrorHF = False
+    else:
+        try:
+            errorHFServer = "SELECT ID, UID, DOCK,  STATUS, URL, TIME, TOTALTIME FROM send_error WHERE SEND_STATUS = %s ORDER BY ID ASC LIMIT 1"
+            cursor.execute(errorHFServer, ["TAP START IN"])
+            valErrorHFServer = cursor.fetchone()
+            idErrorHF = valErrorHFServer[0]
+            uidErrorHF = valErrorHFServer[1]
+            DockErrorHF = valErrorHFServer[2]
+            statErrorHF = valErrorHFServer[3]
+            TimeErrorHF = valErrorHFServer[5]
+            urlErrorHF = valErrorHFServer[4]
+            totalTImeErrorHF = valErrorHFServer[6]
+            sendErrorHF = True
+        except:
+            idErrorHF = 'OFF'
+            uidErrorHF = 'OFF'
+            DockErrorHF = 'OFF'
+            TimeErrorHF = 'OFF'
+            urlErrorHF = 'OFF'
+            statErrorHF = 'OFF'
+            totalTImeErrorHF = 'OFF'
+            sendErrorHF = False
     if sendErrorHF:
         if statErrorHF == 'TAP':
             dataErrorHF = {'uid':uidErrorHF,
