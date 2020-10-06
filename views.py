@@ -850,6 +850,8 @@ async def reqNopol(request, number):
             dockCode = f"A0{number}"
         else:
             dockCode = f"A{number}"
+    elif int(number) > 24:
+        dockCode = f"B0{number}"
     try:
         getReqNopol = "SELECT UID, POLICE_NO, STATUS FROM loading_dock WHERE DOCK = %s"
         cursor.execute(getReqNopol, [dockCode, ])
@@ -880,6 +882,8 @@ async def reqActive(request, number):
             dockCode = f"A0{number}"
         else:
             dockCode = f"A{number}"
+    elif int(number) > 24:
+        dockCode = f"B0{number}"
     try:
         getReqActive = "SELECT UID, POLICE_NO, STATUS, TYPE FROM loading_dock WHERE DOCK = %s"
         cursor.execute(getReqActive, [dockCode, ])
@@ -912,6 +916,8 @@ async def reqState(request, number):
             dockCode = f"A0{number}"
         else:
             dockCode = f"A{number}"
+    elif int(number) > 24:
+        dockCode = f"B0{number}"
     try:
         getReqState = "SELECT UID, STATUS FROM dock_time_count WHERE DOCK = %s"
         cursor.execute(getReqState, [dockCode, ])
