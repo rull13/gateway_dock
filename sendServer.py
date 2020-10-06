@@ -125,7 +125,7 @@ async def sendErrorDisplay(dock=None, dockStatus=None):
                 logger.info(f'[PULL ENABLE]   : [SEND DISPLAY] [DOCK {DockErrorBook}] SEND POST {dataErrorBook}')
                 logger.info(f'[PULL ENABLE]   : [SEND DISPLAY] [DOCK {DockErrorBook}] SEND TO URL {urlErrorBook}')
                 rBookingError = await requests.post(urlErrorBook, json=dataErrorBook, timeout = 5)
-                logger.info(f'[PULL ENABLE]   : [SEND DISPLAY]  [DOCK {DockErrorBook}] SUCCESCFULLY SEND POST TO DISPLAY')
+                logger.info(f'[PULL ENABLE]   : [SEND DISPLAY] [DOCK {DockErrorBook}] SUCCESCFULLY SEND POST TO DISPLAY')
                 sqldelBook = 'DELETE FROM send_error WHERE id = %s'
                 cursor.execute(sqldelBook, [idErrorBook,])
                 mydb.commit()
