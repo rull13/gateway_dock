@@ -300,8 +300,10 @@ async def dockHF(request, dockCode):
             policeNumberHF2 = PoliceNOHF2
             URL_HF2 = f'http://{ipDisplayHF2}'
             dataStartDisplay2 = {"state":"1"}
+            dataBookPolice = {"nopol":f"{policeNumberHF2}"}
             try:
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_HF2}')
+                rHF = await requests.post(URL_HF2, json=dataBookPolice, timeout = 5)
                 rHF = await requests.post(URL_HF2, json=dataStartDisplay2, timeout = 5)
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStartDisplay2}')
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
@@ -851,7 +853,7 @@ async def reqNopol(request, number):
         else:
             dockCode = f"A{number}"
     elif int(number) > 24:
-        dockCode = f"B0{number}"
+        dockCode = f"B{number}"
     try:
         getReqNopol = "SELECT UID, POLICE_NO, STATUS FROM loading_dock WHERE DOCK = %s"
         cursor.execute(getReqNopol, [dockCode, ])
@@ -883,7 +885,7 @@ async def reqActive(request, number):
         else:
             dockCode = f"A{number}"
     elif int(number) > 24:
-        dockCode = f"B0{number}"
+        dockCode = f"B{number}"
     try:
         getReqActive = "SELECT UID, POLICE_NO, STATUS, TYPE FROM loading_dock WHERE DOCK = %s"
         cursor.execute(getReqActive, [dockCode, ])
@@ -917,7 +919,7 @@ async def reqState(request, number):
         else:
             dockCode = f"A{number}"
     elif int(number) > 24:
-        dockCode = f"B0{number}"
+        dockCode = f"B{number}"
     try:
         getReqState = "SELECT UID, STATUS FROM dock_time_count WHERE DOCK = %s"
         cursor.execute(getReqState, [dockCode, ])
