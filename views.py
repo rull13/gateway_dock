@@ -201,10 +201,10 @@ async def dockHF(request, dockCode):
                 ipDisplay = await getIPdisplay(dockCode)
                 URL_BOOK = f'http://{ipDisplay}'
                 try:
-                    rBooking = await requests.post(URL_BOOK, json=dataActive, timeout = 5)
                     logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK} {dataActive} TO DISPLAY')
+                    rBooking = await requests.post(URL_BOOK, json=dataActive, timeout = 5)
                 except:
-                    logger.error(f'[HF RFID]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] ERROR SEND {dataActive}')
+                    pass
         mydb.commit()
         return text("OK")
     try:
@@ -304,6 +304,7 @@ async def dockHF(request, dockCode):
             try:
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_HF2}')
                 rHF = await requests.post(URL_HF2, json=dataBookPolice, timeout = 5)
+                await asyncio.sleep(1)
                 rHF = await requests.post(URL_HF2, json=dataStartDisplay2, timeout = 5)
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStartDisplay2}')
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
@@ -853,7 +854,16 @@ async def reqNopol(request, number):
         else:
             dockCode = f"A{number}"
     elif int(number) > 24:
-        dockCode = f"B{number}"
+        number = int(number)
+        if number == 25:
+            number = 1
+        elif number == 26:
+            number = 2
+        elif number == 27:
+            number = 3
+        elif number == 28:
+            number = 4
+        dockCode = f"B0{number}"
     try:
         getReqNopol = "SELECT UID, POLICE_NO, STATUS FROM loading_dock WHERE DOCK = %s"
         cursor.execute(getReqNopol, [dockCode, ])
@@ -885,7 +895,16 @@ async def reqActive(request, number):
         else:
             dockCode = f"A{number}"
     elif int(number) > 24:
-        dockCode = f"B{number}"
+        number = int(number)
+        if number == 25:
+            number = 1
+        elif number == 26:
+            number = 2
+        elif number == 27:
+            number = 3
+        elif number == 28:
+            number = 4
+        dockCode = f"B0{number}"
     try:
         getReqActive = "SELECT UID, POLICE_NO, STATUS, TYPE FROM loading_dock WHERE DOCK = %s"
         cursor.execute(getReqActive, [dockCode, ])
@@ -919,7 +938,16 @@ async def reqState(request, number):
         else:
             dockCode = f"A{number}"
     elif int(number) > 24:
-        dockCode = f"B{number}"
+        number = int(number)
+        if number == 25:
+            number = 1
+        elif number == 26:
+            number = 2
+        elif number == 27:
+            number = 3
+        elif number == 28:
+            number = 4
+        dockCode = f"B0{number}"
     try:
         getReqState = "SELECT UID, STATUS FROM dock_time_count WHERE DOCK = %s"
         cursor.execute(getReqState, [dockCode, ])
