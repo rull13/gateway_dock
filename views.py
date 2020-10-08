@@ -297,6 +297,14 @@ async def dockHF(request, dockCode):
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE TO DOCK_COUNT')
         except:
             logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [QUERY] ERROR TO UPDATE TO DOCK_COUNT')
+        try:
+            updateDockHF = "UPDATE loading_dock SET STATUS = %s, LAST_UPDATE = %s  WHERE DOCK = %s"
+            valDockHF = ["TAP", str(now), dockCode]
+            cursor.execute(updateDockHF,valDockHF)
+            mydb.commit()
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE STATUS {dockCode}')
+        except:
+            logger.error(f'[HF RFID]      :   [DOCK {dockCode}] [ERROR] [QUERY] UPDATE STATUS TO DOCK {dockCode} ERROR')
         if UidDb == UidDb2 and PoliceNOHF == PoliceNOHF2:
             logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] DOUBLE DOCK DETECT')
             ipDisplayHF2 = await getIPdisplay(dockCode2)
@@ -327,6 +335,15 @@ async def dockHF(request, dockCode):
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [QUERY] SUCCESCFULLY UPDATE TO DOCK_COUNT')
             except:
                 logger.error(f'[HF RIFD]      :   [DOCK {dockCode2}] [ERROR] [QUERY] ERROR TO UPDATE TO DOCK_COUNT')
+            try:
+                updateDockHF2 = "UPDATE loading_dock SET STATUS = %s, LAST_UPDATE = %s  WHERE DOCK = %s"
+                valDockHF2 = ["TAP", str(now), dockCode2]
+                cursor.execute(updateDockHF2,valDockHF2)
+                mydb.commit()
+                logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [QUERY] SUCCESCFULLY UPDATE STATUS {dockCode2}')
+            except:
+                logger.error(f'[HF RFID]      :   [DOCK {dockCode2}] [ERROR] [QUERY] UPDATE STATUS TO DOCK {dockCode2} ERROR')
+
 
     elif UidDb == dataEPC and statusHFLD == "STOP":
         logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [TAP] UID MATCH')
@@ -356,6 +373,13 @@ async def dockHF(request, dockCode):
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE LOADING DOCK STATUS {dockCode}')
         except:
             logger.error(f'[HF RFID]      :   [DOCK {dockCode}] [ERROR] [QUERY] UPDATE TO LOADING DOCK ERROR')
+        ipStopp = await getIPdisplay(dockCode)
+        URL_STOPp = f'http://{ipStopp}'
+        dataStopp = {"alarm":"0"}
+        try:
+            rStop1 = await requests.post(URL_STOPp, json=dataStopp, timeout = 5)            
+        except:
+            pass
         if UidDb == UidDb2 and PoliceNOHF == PoliceNOHF2:
             try:
                 updateTerpalDock = "UPDATE loading_dock SET UID = %s, POLICE_NO = %s, STATUS = %s, LAST_UPDATE = %s  WHERE DOCK = %s"
@@ -365,6 +389,13 @@ async def dockHF(request, dockCode):
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [QUERY] SUCCESCFULLY UPDATE LOADING DOCK STATUS {dockCode}')
             except:
                 logger.error(f'[HF RFID]      :   [DOCK {dockCode2}] [ERROR] [QUERY] UPDATE TO LOADING DOCK ERROR')
+            ipStopp2 = await getIPdisplay(dockCode2)
+            URL_STOPp2 = f'http://{ipStopp2}'
+            dataStopp2 = {"alarm":"0"}
+            try:
+                rStop2 = await requests.post(URL_STOPp2, json=dataStopp2, timeout = 5)
+            except:
+                pass
     elif UidDb != dataEPC and statusHFLD == "BOOKING":
         #ALARM
         logger.warning(f'[HF RFID]       :   [DOCK {dockCode}] [TAP] NOT MATCH')
@@ -417,7 +448,7 @@ async def dockStart(request, dockCode):
         logger.info(f'[START DOCK]    :   [DOCK {dockCode}] [LOG] SUCCESCFULLY UPDATE TO LOG DB DOCK {dockCode}')
     except:
         logger.error(f'[START DOCK]   :   [DOCK {dockCode}] [ERROR] [LOG] INSERT TO LOG ERROR')
-    if statusStartDock == "BOOKING":
+    if statusStartDock == "TAP":
         try:
             updateStartDock = "UPDATE loading_dock SET STATUS = %s, LAST_UPDATE = %s  WHERE DOCK = %s"
             valStartDock = ["START", str(now), dockCode]
@@ -543,16 +574,16 @@ async def dockStop(request, dockCode):
         URL_STOP = f'http://{ipStop}'
         dataStop = {"alarm":"0"}
         try:
-            logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_STOP}')
+            logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [ALARM] [SEND DISPLAY] SEND {dataStop} {URL_STOP}')
             rStop = await requests.post(URL_STOP, json=dataStop, timeout = 5)
-            logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+            logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [ALARM] [SEND DISPLAY] SEUCCESFULLY SEND ALARM')
             #AWAIT STAT ALARM
         except:
-            logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+            logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [ALARM] [SEND DISPLAY] ERROR')
             pullHFERROR = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
             valHFERROR = dockCode, 'ALARMOFF', URL_STOP, str(now), "TO DISPLAY"
             cursor.execute(pullHFERROR, valHFERROR)
-            logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
+            logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [ALARM] [SEND DISPLAY] SAVE TO DB PULLING')
             app.add_task(trySendDisplay(dockCode, 'ALARMOFF'))
         try:
             updateAlarmENDLog = "INSERT INTO log_alarm (UID, DOCK, STATUS, NOTE, TIME) VALUES (%s, %s, %s, %s, %s)"
@@ -618,9 +649,9 @@ async def dockStop(request, dockCode):
             URL_STOP2 = f'http://{ipStop2}'
             dataStop2 = {"alarm":"0"}
             try:
-                logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_STOP2}')
+                logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [ALARM] [SEND DISPLAY] SEND {dataStop2} {URL_STOP2}')
                 rStop = await requests.post(URL_STOP2, json=dataStop2, timeout = 5)
-                logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+                logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [ALARM] [SEND DISPLAY] SEUCCESFULLY SEND ALARM OFF')
                 #AWAIT STAT ALARM
             except:
                 delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
