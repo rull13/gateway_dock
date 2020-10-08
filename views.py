@@ -260,7 +260,7 @@ async def dockHF(request, dockCode):
         dataStartDisplay = {"state":"1"}
         dataBookPolice1 = {"nopol":f"{policeNumberHF}"}
         try:
-            rHF = await requests.post(URL_HF, json=dataBookPolice1, timeout = 5)
+            #rHF = await requests.post(URL_HF, json=dataBookPolice1, timeout = 5)
             await asyncio.sleep(2)
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_HF}')
             rHF = await requests.post(URL_HF, json=dataStartDisplay, timeout = 5)
@@ -318,7 +318,7 @@ async def dockHF(request, dockCode):
             dataBookPolice = {"nopol":f"{policeNumberHF2}"}
             try:
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_HF2}')
-                rHF = await requests.post(URL_HF2, json=dataBookPolice, timeout = 5)
+                #rHF = await requests.post(URL_HF2, json=dataBookPolice, timeout = 5)
                 await asyncio.sleep(2)
                 rHF = await requests.post(URL_HF2, json=dataStartDisplay2, timeout = 5)
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStartDisplay2}')
@@ -696,7 +696,8 @@ async def dockStop(request, dockCode):
             logger.error(f'[STOP DOCK]    :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
             app.add_task(trySendDisplay(dockCode2, "STOP"))
     mydb.commit()
-    return json({'totalTime': durationStopCount})
+    y = json.dumps({'totalTime': durationStopCount})
+    return text(y)
 
 
 
@@ -925,7 +926,7 @@ async def reqNopol(request, number):
     except:
         policeNopol = "notfound"
         logger.error(f'[REQ NOPOL]    :   [DOCK {dockCode}] [QUERY] [ERROR] SELECT DURATION ERROR')
-    if policeNopol != "notfound":
+    if policeNopol != "notfound" and policeNopol:
         ipDisplay = await getIPdisplay(dockCode)
         try:
             policeNumber = policeNopol.upper()
@@ -934,7 +935,7 @@ async def reqNopol(request, number):
         except:
             pass
         try:
-            logger.info(f'[REQ NOPOL]     :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK}')
+            logger.info(f'[REQ NOPOL]     :   [DOCK {dockCode}] [SEND DISPLAY] SEND {dataBook} {URL_BOOK}')
             rBooking = await requests.post(URL_BOOK, json=dataBook, timeout = 5)
             logger.info(f'[REQ NOPOL]     :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataBook} TO DISPLAY')
         except:
@@ -969,7 +970,7 @@ async def reqActive(request, number):
     except:
         GetActiveStat = "notfound"
         logger.error(f'[REQ ACTIVE]   :   [DOCK {dockCode}] [QUERY] [ERROR] SELECT DURATION ERROR')
-    if GetActiveStat != "notfound":
+    if GetActiveStat != "notfound" and GetActiveStat:
         if GetActiveStat == 'ENABLE':
             dataActive = {"active":"1"}
         else:
@@ -977,7 +978,7 @@ async def reqActive(request, number):
         ipDisplay = await getIPdisplay(dockCode)
         URL_BOOK = f'http://{ipDisplay}'
         try:
-            logger.info(f'[REQ ACTIVE]    :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK}')
+            logger.info(f'[REQ ACTIVE]    :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {dataActive} {URL_BOOK}')
             rBooking = await requests.post(URL_BOOK, json=dataActive, timeout = 5)
             logger.info(f'[REQ ACTIVE]    :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataActive} TO DISPLAY')
         except:
@@ -1012,7 +1013,7 @@ async def reqState(request, number):
     except:
         GetStateStat = "notfound"
         logger.error(f'[REQ STATE]    :   [DOCK {dockCode}] [QUERY] [ERROR] SELECT DURATION ERROR')
-    if GetStateStat != "notfound":
+    if GetStateStat != "notfound" and GetStateStat :
         if GetStateStat == 'START' or GetStateStat == 'TAP':
             dataState = {"state":"1"}
         else:
@@ -1020,7 +1021,7 @@ async def reqState(request, number):
         ipDisplay = await getIPdisplay(dockCode)
         URL_BOOK = f'http://{ipDisplay}'
         try:
-            logger.info(f'[REQ STATE]     :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK}')
+            logger.info(f'[REQ STATE]     :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {dataState} {URL_BOOK}')
             rBooking = await requests.post(URL_BOOK, json=dataState, timeout = 5)
             logger.info(f'[REQ STATE]     :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataState} TO DISPLAY')
         except:
