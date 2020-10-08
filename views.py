@@ -582,6 +582,9 @@ async def dockStop(request, dockCode):
             logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [ALARM] [SEND DISPLAY] SEUCCESFULLY SEND ALARM')
             #AWAIT STAT ALARM
         except:
+            delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
+            cursor.execute(delpul, [dockCode,"TO DISPLAY"])
+            mydb.commit()
             logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [ALARM] [SEND DISPLAY] ERROR')
             pullHFERROR = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
             valHFERROR = dockCode, 'ALARMOFF', URL_STOP, str(now), "TO DISPLAY"
@@ -658,7 +661,7 @@ async def dockStop(request, dockCode):
                 #AWAIT STAT ALARM
             except:
                 delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
-                cursor.execute(delpul, [dockCode,"TO DISPLAY"])
+                cursor.execute(delpul, [dockCode2,"TO DISPLAY"])
                 mydb.commit()
                 logger.error(f'[STOP DOCK]    :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
                 pullHFERROR2 = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
