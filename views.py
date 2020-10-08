@@ -257,7 +257,10 @@ async def dockHF(request, dockCode):
         policeNumberHF = PoliceNOHF
         URL_HF = f'http://{ipDisplayHF}'
         dataStartDisplay = {"state":"1"}
+        dataBookPolice1 = {"nopol":f"{policeNumberHF}"}
         try:
+            rHF = await requests.post(URL_HF, json=dataBookPolice1, timeout = 5)
+            await asyncio.sleep(2)
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_HF}')
             rHF = await requests.post(URL_HF, json=dataStartDisplay, timeout = 5)
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStartDisplay}')
@@ -315,7 +318,7 @@ async def dockHF(request, dockCode):
             try:
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_HF2}')
                 rHF = await requests.post(URL_HF2, json=dataBookPolice, timeout = 5)
-                await asyncio.sleep(1)
+                await asyncio.sleep(2)
                 rHF = await requests.post(URL_HF2, json=dataStartDisplay2, timeout = 5)
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStartDisplay2}')
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
@@ -377,7 +380,7 @@ async def dockHF(request, dockCode):
         URL_STOPp = f'http://{ipStopp}'
         dataStopp = {"alarm":"0"}
         try:
-            rStop1 = await requests.post(URL_STOPp, json=dataStopp, timeout = 5)            
+            rStop1 = await requests.post(URL_STOPp, json=dataStopp, timeout = 5)
         except:
             pass
         if UidDb == UidDb2 and PoliceNOHF == PoliceNOHF2:
