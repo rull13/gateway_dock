@@ -3,6 +3,7 @@ from sanic.response import json, text
 from datetime import datetime, date, timedelta
 import time
 import asyncio
+import json
 from gateway_dock import cursor, app, mydb, logger
 from gateway_dock.config import reconMysql, reconnenctToDbServer, getIPdisplay, getIPServer, statAlarm
 from gateway_dock.sendServer import sendErrorDisplay, sendErrorTapIn
@@ -136,7 +137,7 @@ async def startDurationLoading(dockCode):
 @gateway.route("/dock/booking/<dockCode>", methods=['GET','POST'])
 async def dockBook(request, dockCode):
     now = datetime.now()
-    data_dock = dict(eval(request.body.decode('utf-8')))
+    data_dock = json.loads(request.body.decode('utf-8'))
     logger.info(f"[DATA IN]       :  [DOCK {dockCode}] {data_dock}")
     # print(database.is_connected)
     try:
@@ -410,7 +411,7 @@ async def dockHF(request, dockCode):
 @gateway.route("/dock/start/<dockCode>", methods=['GET','POST'])
 async def dockStart(request, dockCode):
     logger.info(f"[DATA IN]       :  [DOCK {dockCode}] {request.body.decode('utf-8')}")
-    data_dock = dict(eval(request.body.decode('utf-8')))
+    data_dock = json.loads(request.body.decode('utf-8'))
     now = datetime.now()
     date_ = now.strftime("%Y%m%d")
     time_ = now.strftime("%H:%M:%S")
@@ -844,7 +845,9 @@ async def dockEnable(request, dockCode):
 async def dockSchedule(request):
     now = datetime.now()
     logger.info(f"[DATA IN]       :  {request.body.decode('utf-8')}")
+    #schedule = dict(eval(request.body.decode('utf-8')))
     schedule = request.body.decode('utf-8')
+    schedule = json.loads(schedule)
     cursor.execute('TRUNCATE fasting')
     cursor.execute('TRUNCATE timetype')
     cursor.execute('TRUNCATE worktime')
@@ -852,8 +855,8 @@ async def dockSchedule(request):
 
     try:
         for a in range (len(schedule['fasting'])):
-            dateFrom = schedule['fasting'][a]['dateFrom']
-            dateTo = schedule['fasting'][a]['dateTo']
+            dateFrom = schedule['fasting'][a]['date_from'].split("T")[0]
+            dateTo = schedule['fasting'][a]['date_to'].split("T")[0]
             try:
                 sqlDateFast = "INSERT INTO fasting (dateFrom, dateTo) VALUES (%s, %s)"
                 valueDateFast = str(dateFrom), str(dateTo)
@@ -879,10 +882,10 @@ async def dockSchedule(request):
 
     try:
         for c in range (len(schedule['workTime'])):
-            timeWorkId = schedule['workTime'][c]['timeTypeId']
-            timeWorkFrom = schedule['workTime'][c]['timeFrom']
-            timeWorkTo = schedule['workTime'][c]['timeTo']
-            workBreakFlag = schedule['workTime'][c]['breakFlag']
+            timeWorkId = schedule['workTime'][c]['time_type_id']
+            timeWorkFrom = schedule['workTime'][c]['time_from']
+            timeWorkTo = schedule['workTime'][c]['time_to']
+            workBreakFlag = schedule['workTime'][c]['break_flag']
             try:
                 sqltimeWork = "INSERT INTO worktime (timeTypeId, timeFrom, timeTo, breakFlag) VALUES (%s, %s, %s, %s)"
                 valtimeWork = int(timeWorkId), str(timeWorkFrom), str(timeWorkTo), workBreakFlag
