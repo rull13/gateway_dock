@@ -927,15 +927,18 @@ async def reqNopol(request, number):
         logger.error(f'[REQ NOPOL]    :   [DOCK {dockCode}] [QUERY] [ERROR] SELECT DURATION ERROR')
     if policeNopol != "notfound":
         ipDisplay = await getIPdisplay(dockCode)
-        policeNumber =policeNopol.upper()
-        URL_BOOK = f'http://{ipDisplay}'
-        dataBook = {"nopol":f"{policeNumber}"}
+        try:
+            policeNumber = policeNopol.upper()
+            URL_BOOK = f'http://{ipDisplay}'
+            dataBook = {"nopol":f"{policeNumber}"}
+        except:
+            pass
         try:
             logger.info(f'[REQ NOPOL]     :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK}')
             rBooking = await requests.post(URL_BOOK, json=dataBook, timeout = 5)
             logger.info(f'[REQ NOPOL]     :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataBook} TO DISPLAY')
         except:
-            logger.error(f'[REQ NOPOL]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
+            logger.error(f'[REQ NOPOL]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY]')
         mydb.commit()
     return text('OK')
 
@@ -978,7 +981,7 @@ async def reqActive(request, number):
             rBooking = await requests.post(URL_BOOK, json=dataActive, timeout = 5)
             logger.info(f'[REQ ACTIVE]    :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataActive} TO DISPLAY')
         except:
-            logger.error(f'[REQ ACTIVE]   :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
+            logger.error(f'[REQ ACTIVE]   :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] ')
         mydb.commit()
     return text('OK')
 
@@ -1021,6 +1024,6 @@ async def reqState(request, number):
             rBooking = await requests.post(URL_BOOK, json=dataState, timeout = 5)
             logger.info(f'[REQ STATE]     :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataState} TO DISPLAY')
         except:
-            logger.error(f'[REQ STATE]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
+            logger.error(f'[REQ STATE]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY]')
         mydb.commit()
     return text('OK')
