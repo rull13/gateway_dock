@@ -133,6 +133,14 @@ async def startDurationLoading(dockCode):
     if statusCount == 'START':
         mydb.commit()
         app.add_task(startDurationLoading(dockCode))
+    else:
+        ipStopp = await getIPdisplay(dockCode)
+        URL_STOPp = f'http://{ipStopp}'
+        dataStopp = {"alarm":"0"}
+        try:
+            rStop1 = await requests.post(URL_STOPp, json=dataStopp, timeout = 5)
+        except:
+            pass
 
 @gateway.route("/dock/booking/<dockCode>", methods=['GET','POST'])
 async def dockBook(request, dockCode):
@@ -168,7 +176,7 @@ async def dockBook(request, dockCode):
         logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataBook} TO DISPLAY')
     except:
         delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
-        cursor.execute(delpul, [dockCode,"TO DISPLAY"])
+        cursor.execute(delpul, [dockCode, "TO DISPLAY"])
         mydb.commit()
         logger.error(f'[BOOKING]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
         pullBookError = "INSERT INTO send_error (DOCK, POLICE_NO, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s, %s)"
@@ -198,17 +206,16 @@ async def dockHF(request, dockCode):
             GetActiveStat = GetActive[3]
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] STATUS DOCK {GetActiveStat}')
         except:
-            GetActiveStat = "notfound"
-        if GetActiveStat != "notfound":
-            if GetActiveStat == 'DISABLE':
-                dataActive = {"active":"0"}
-                ipDisplay = await getIPdisplay(dockCode)
-                URL_BOOK = f'http://{ipDisplay}'
-                try:
-                    logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK} {dataActive} TO DISPLAY')
-                    rBooking = await requests.post(URL_BOOK, json=dataActive, timeout = 5)
-                except:
-                    pass
+            GetActiveStat = "notfound"        
+        if GetActiveStat == 'DISABLE':
+            dataActive = {"active":"0"}
+            ipDisplay = await getIPdisplay(dockCode)
+            URL_BOOK = f'http://{ipDisplay}'
+            try:
+                logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK} {dataActive} TO DISPLAY')
+                rBooking = await requests.post(URL_BOOK, json=dataActive, timeout = 5)
+            except:
+                pass
         mydb.commit()
         return text("OK")
     try:
@@ -584,7 +591,7 @@ async def dockStop(request, dockCode):
             #AWAIT STAT ALARM
         except:
             delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
-            cursor.execute(delpul, [dockCode,"TO DISPLAY"])
+            cursor.execute(delpul, [dockCode, "TO DISPLAY"])
             mydb.commit()
             logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [ALARM] [SEND DISPLAY] ERROR')
             pullHFERROR = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
@@ -619,6 +626,9 @@ async def dockStop(request, dockCode):
         logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] {dataStateStop}')
         logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
     except:
+        delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
+        cursor.execute(delpul, [dockCode, "TO DISPLAY"])
+        mydb.commit()
         logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
         pullHFERROR = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
         valHFERROR = dockCode, 'STOP', URL_StateStop, str(now), "TO DISPLAY"
@@ -662,7 +672,7 @@ async def dockStop(request, dockCode):
                 #AWAIT STAT ALARM
             except:
                 delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
-                cursor.execute(delpul, [dockCode2,"TO DISPLAY"])
+                cursor.execute(delpul, [dockCode2, "TO DISPLAY"])
                 mydb.commit()
                 logger.error(f'[STOP DOCK]    :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
                 pullHFERROR2 = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
@@ -688,6 +698,9 @@ async def dockStop(request, dockCode):
             logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStateStop2}')
             logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
         except:
+            delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
+            cursor.execute(delpul, [dockCode2, "TO DISPLAY"])
+            mydb.commit()
             logger.error(f'[STOP DOCK]    :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
             pullHFERROR2 = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
             valHFERROR2 = dockCode2, 'STOP', URL_StateStop2, str(now), "TO DISPLAY"
@@ -829,7 +842,7 @@ async def dockEnable(request, dockCode):
         #AWAIT STAT ALARM
     except:
         delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
-        cursor.execute(delpul, [dockCode,"TO DISPLAY"])
+        cursor.execute(delpul, [dockCode, "TO DISPLAY"])
         mydb.commit()
         logger.error(f'[ENABLE DOCK]  :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
         pullENABLEERROR = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
