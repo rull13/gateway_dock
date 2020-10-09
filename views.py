@@ -183,7 +183,7 @@ async def dockBook(request, dockCode):
         valBookError = dockCode, policeNumber, 'BOOKING', URL_BOOK, str(now), "TO DISPLAY"
         cursor.execute(pullBookError, valBookError)
         logger.error(f'[BOOKING]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-        app.add_task(trySendDisplay(dockCode, 'BOOKING'))
+        app.add_task(trySendDisplay(dockCode))
         # app.add_task(sendEmailLog(f'ERROR SEND TO DISPLAY {dockCode}', 'BOOKING'))
 
     mydb.commit()
@@ -206,7 +206,7 @@ async def dockHF(request, dockCode):
             GetActiveStat = GetActive[3]
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] STATUS DOCK {GetActiveStat}')
         except:
-            GetActiveStat = "notfound"        
+            GetActiveStat = "notfound"
         if GetActiveStat == 'DISABLE':
             dataActive = {"active":"0"}
             ipDisplay = await getIPdisplay(dockCode)
@@ -280,7 +280,7 @@ async def dockHF(request, dockCode):
             cursor.execute(pullHFERROR, valHFERROR)
             mydb.commit()
             logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-            app.add_task(trySendDisplay(dockCode, 'START'))
+            app.add_task(trySendDisplay(dockCode))
 
         dataHF = {'uid':dataEPC,
                 'dockCode':dockCode,
@@ -337,7 +337,7 @@ async def dockHF(request, dockCode):
                 cursor.execute(pullHFERROR, valHFERROR)
                 mydb.commit()
                 logger.error(f'[HF RIFD]      :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-                app.add_task(trySendDisplay(dockCode2, 'START'))
+                app.add_task(trySendDisplay(dockCode2))
             try:
                 updateDockCount2 = "UPDATE dock_time_count SET UID = %s, STATUS = %s WHERE DOCK = %s"
                 valDockCount2 = [UidDb2, 'TAP', dockCode2]

@@ -23,6 +23,24 @@ async def sendErrorDisplay(dock=None, dockStatus=None):
             ErrorNoPol = "OFF"
             statErrorBook = "OFF"
             sendErrorBookStat = False
+    elif dock:
+        try:
+            errorBooking = "SELECT ID, DOCK, POLICE_NO, STATUS, URL FROM send_error WHERE SEND_STATUS = %s and DOCK = %s ORDER BY ID ASC LIMIT 1"
+            cursor.execute(errorBooking, ["TO DISPLAY", dock])
+            valErrorBooking = cursor.fetchone()
+            idErrorBook = valErrorBooking[0]
+            DockErrorBook = valErrorBooking[1]
+            ErrorNoPol = valErrorBooking[2]
+            statErrorBook = valErrorBooking[3]
+            urlErrorBook = valErrorBooking[4]
+            sendErrorBookStat = True
+        except:
+            idErrorBook = 'OFF'
+            DockErrorBook = 'OFF'
+            urlErrorBook = 'OFF'
+            ErrorNoPol = "OFF"
+            statErrorBook = "OFF"
+            sendErrorBookStat = False
     else:
         try:
             errorBooking = "SELECT ID, DOCK, POLICE_NO, STATUS, URL FROM send_error WHERE SEND_STATUS = %s ORDER BY ID ASC LIMIT 1"
