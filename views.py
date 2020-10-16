@@ -359,7 +359,8 @@ async def dockHF(request, dockCode):
     elif UidDb == dataEPC and statusHFLD == "STOP":
         logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [TAP] UID MATCH')
         timeTerpal = int((now-LastTime).total_seconds())
-        dataHF = {"timeTerpal":timeTerpal}
+        dataHF = {"uid":dataEPC,
+                    "timeTerpal":timeTerpal}
         logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [TIME] TERPAL TIME {timeTerpal}')
         ipServerHF = await getIPServer(dockCode)
         URL_SERVERIN = f"http://{ipServerHF}/dock/out"
