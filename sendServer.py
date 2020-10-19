@@ -218,7 +218,8 @@ async def sendErrorTapIn(dock = None, dockStatus = None):
             except:
                 logger.error(f'[PULL HF]      :   [SEND SERVER] [DOCK {DockErrorHF}] [ERROR] SEND TO SERVER ERROR')
         elif statErrorHF == 'TERPAL':
-            dataErrorHF = {'timeTerpal':totalTImeErrorHF }
+            dataErrorHF = { 'uid':uidErrorHF,
+                            'timeTerpal':totalTImeErrorHF }
             try:
                 logger.info(f'[PULL HF]       :   [SEND SERVER] [DOCK {DockErrorHF}] {dataErrorHF}')
                 logger.info(f'[PULL HF]       :   [SEND SERVER] [DOCK {DockErrorHF}] {urlErrorHF}')
