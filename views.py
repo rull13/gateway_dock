@@ -26,8 +26,15 @@ async def trySendHfServer(dockNum = None, dockStat = None):
         app.add_task(trySendHfServer(dockNum, dockStat))
 
 # app.add_task(reconnenctToDbServer())
-app.add_task(reconMysql())
 
+async def reqTimeWork():
+    await asyncio.sleep(10)
+    try:
+        ipServerTime = await getIPServer()
+        URL_SERVER_TIME = f"http://{ipServerHF}/workTime"
+        rTime = await requests.get(URL_SERVER_TIME, timeout = 5)
+    except:
+        pass
 
 
 async def cekCountLoad():
@@ -38,8 +45,10 @@ async def cekCountLoad():
             else:
                 dockName = f"A{x}"
         app.add_task(startDurationLoading(dockName))
+        
 app.add_task(cekCountLoad())
-
+app.add_task(reconMysql())
+app.add_tast(reqTimeWork())
 
 async def startDurationLoading(dockCode):
     #BELUM KIRIM DATA KE SERVER KALO ALARM

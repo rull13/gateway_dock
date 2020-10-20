@@ -61,7 +61,7 @@ async def getIPdisplay(dock):
         logger.error(f'[CONFIG]       :   GETTING IP {dock} ERROR')
         return 0
 
-async def getIPServer(dock):
+async def getIPServer(dock=None):
     try:
         sqlGetIpServer = "SELECT ip, port FROM ipserver"
         cursor.execute(sqlGetIpServer)
