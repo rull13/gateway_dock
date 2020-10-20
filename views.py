@@ -98,6 +98,9 @@ async def startDurationLoading(dockCode):
                     rCOUNT = await requests.post(URL_ALARM_COUNT, json=dataALARMCOUNT, timeout = 5)
                     logger.info(f'[COUNT DOCK]    :   [DOCK {dockCode}] [SEND DISPLAY] [ALARM] SUCCESCFULLY SEND POST TO DISPLAY')
                 except:
+                    delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
+                    cursor.execute(delpul, [dockCode, "TO DISPLAY"])
+                    mydb.commit()
                     logger.error(f'[COUNT DOCK]   :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] [ALARM] SEND TO DISPLAY ERROR')
                     pullCOUNTError = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
                     valCOUNTError = dockCode, 'ALARMCOUNT', URL_ALARM_COUNT, str(dateTimeNow), "TO DISPLAY"
