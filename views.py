@@ -270,8 +270,6 @@ async def dockHF(request, dockCode):
         dataStartDisplay = {"state":"1"}
         dataBookPolice1 = {"nopol":f"{policeNumberHF}"}
         try:
-            #rHF = await requests.post(URL_HF, json=dataBookPolice1, timeout = 5)
-            await asyncio.sleep(2)
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_HF}')
             rHF = await requests.post(URL_HF, json=dataStartDisplay, timeout = 5)
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStartDisplay}')
@@ -331,8 +329,6 @@ async def dockHF(request, dockCode):
             dataBookPolice = {"nopol":f"{policeNumberHF2}"}
             try:
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_HF2}')
-                #rHF = await requests.post(URL_HF2, json=dataBookPolice, timeout = 5)
-                await asyncio.sleep(2)
                 rHF = await requests.post(URL_HF2, json=dataStartDisplay2, timeout = 5)
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStartDisplay2}')
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
