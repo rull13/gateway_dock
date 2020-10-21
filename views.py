@@ -45,10 +45,10 @@ async def cekCountLoad():
             else:
                 dockName = f"A{x}"
         app.add_task(startDurationLoading(dockName))
-        
+
 app.add_task(cekCountLoad())
 app.add_task(reconMysql())
-app.add_tast(reqTimeWork())
+app.add_task(reqTimeWork())
 
 async def startDurationLoading(dockCode):
     #BELUM KIRIM DATA KE SERVER KALO ALARM
