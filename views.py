@@ -265,7 +265,7 @@ async def dockHF(request, dockCode):
         statusHFLD2 = GetUid2[3]
         logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [QUERY] {UidDb2}')
     except:
-        dockCode2 = "OFF"
+        dockCode2 = None
         UidDb2 = "OFF"
         PoliceNOHF2 = "OFF"
         statusHFLD2 = "OFF"
@@ -371,7 +371,8 @@ async def dockHF(request, dockCode):
         logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [TAP] UID MATCH')
         timeTerpal = int((now-LastTime).total_seconds())
         dataHF = {"uid":dataEPC,
-                    "timeTerpal":timeTerpal}
+                    "timeTerpal":timeTerpal,
+                    "dockSekunder":dockCode2}
         logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [TIME] TERPAL TIME {timeTerpal}')
         ipServerHF = await getIPServer(dockCode)
         URL_SERVERIN = f"http://{ipServerHF}/dock/out"
@@ -404,6 +405,7 @@ async def dockHF(request, dockCode):
         except:
             pass
         if UidDb == UidDb2 and PoliceNOHF == PoliceNOHF2:
+
             try:
                 updateTerpalDock = "UPDATE loading_dock SET UID = %s, POLICE_NO = %s, STATUS = %s, LAST_UPDATE = %s  WHERE DOCK = %s"
                 valTerpalDock = [None, None, "STOP", str(now), dockCode2]
@@ -419,6 +421,7 @@ async def dockHF(request, dockCode):
                 rStop2 = await requests.post(URL_STOPp2, json=dataStopp2, timeout = 5)
             except:
                 pass
+
     elif UidDb != dataEPC and statusHFLD == "BOOKING":
         #ALARM
         logger.warning(f'[HF RFID]       :   [DOCK {dockCode}] [TAP] NOT MATCH')
