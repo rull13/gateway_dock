@@ -372,19 +372,20 @@ async def dockHF(request, dockCode):
         timeTerpal = int((now-LastTime).total_seconds())
         dataHF = {"uid":dataEPC,
                     "timeTerpal":timeTerpal,
+                    "dockCode":dockCode,
                     "dockSekunder":dockCode2}
         logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [TIME] TERPAL TIME {timeTerpal}')
         ipServerHF = await getIPServer(dockCode)
-        URL_SERVERIN = f"http://{ipServerHF}/dock/out"
+        URL_SERVEROUT = f"http://{ipServerHF}/dock/out"
         try:
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND SERVER] {dataHF}')
-            rHFServer = await requests.post(URL_SERVERIN, json=dataHF, timeout = 5)
+            rHFServer = await requests.post(URL_SERVEROUT, json=dataHF, timeout = 5)
             print(rHFServer.status_code)
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND SERVER] SUCCESCFULLY SEND TO {URL_SERVERIN}')
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND SERVER] SUCCESCFULLY SEND TO {URL_SERVEROUT}')
         except:
             logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SEND TO SERVER ERROR')
             pullHFERROR = "INSERT INTO send_error (UID, DOCK, STATUS, URL, TOTALTIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s, %s)"
-            valHFERROR = dataEPC, dockCode, 'TERPAL', URL_SERVERIN, timeTerpal, "TAP START IN"
+            valHFERROR = dataEPC, dockCode, 'TERPAL', URL_SERVEROUT, timeTerpal, "TAP START IN"
             cursor.execute(pullHFERROR, valHFERROR)
             mydb.commit()
             logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SAVE TO DB PULLING')
