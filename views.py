@@ -746,22 +746,22 @@ async def dockStop(request, dockCode):
         ipStateStop2 = await getIPdisplay(dockCode2)
         URL_StateStop2 = f'http://{ipStateStop2}'
         dataStateStop2 = {"state":"0"}
-        try:
-            logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_StateStop2}')
-            rHF = await requests.post(URL_StateStop2, json=dataStateStop2, timeout = 5)
-            logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStateStop2}')
-            logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
-        except:
-            delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
-            cursor.execute(delpul, [dockCode2, "TO DISPLAY"])
-            mydb.commit()
-            logger.error(f'[STOP DOCK]    :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
-            pullHFERROR2 = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
-            valHFERROR2 = dockCode2, 'STOP', URL_StateStop2, str(now), "TO DISPLAY"
-            cursor.execute(pullHFERROR2, valHFERROR2)
-            mydb.commit()
-            logger.error(f'[STOP DOCK]    :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-            app.add_task(trySendDisplay(dockCode2, "STOP"))
+        # try:
+        #     logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_StateStop2}')
+        #     rHF = await requests.post(URL_StateStop2, json=dataStateStop2, timeout = 5)
+        #     logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStateStop2}')
+        #     logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+        # except:
+        #     delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
+        #     cursor.execute(delpul, [dockCode2, "TO DISPLAY"])
+        #     mydb.commit()
+        #     logger.error(f'[STOP DOCK]    :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+        #     pullHFERROR2 = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
+        #     valHFERROR2 = dockCode2, 'STOP', URL_StateStop2, str(now), "TO DISPLAY"
+        #     cursor.execute(pullHFERROR2, valHFERROR2)
+        #     mydb.commit()
+        #     logger.error(f'[STOP DOCK]    :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
+        #     app.add_task(trySendDisplay(dockCode2, "STOP"))
     mydb.commit()
     y = json.dumps({'totalTime': durationStopCount})
     return text(y)
