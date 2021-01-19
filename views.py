@@ -398,6 +398,25 @@ async def dockHF(request, dockCode):
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE LOADING DOCK STATUS {dockCode}')
         except:
             logger.error(f'[HF RFID]      :   [DOCK {dockCode}] [ERROR] [QUERY] UPDATE TO LOADING DOCK ERROR')
+        ipStateStop = await getIPdisplay(dockCode)
+        URL_StateStop = f'http://{ipStateStop}'
+        dataStateStop = {"state":"0"}
+        try:
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_StateStop}')
+            rHF = await requests.post(URL_StateStop, json=dataStateStop, timeout = 5)
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStateStop}')
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+        except:
+            delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
+            cursor.execute(delpul, [dockCode, "TO DISPLAY"])
+            mydb.commit()
+            logger.error(f'[HF RFID]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+            pullHFERROR = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
+            valHFERROR = dockCode, 'STOP', URL_StateStop, str(now), "TO DISPLAY"
+            cursor.execute(pullHFERROR, valHFERROR)
+            mydb.commit()
+            logger.error(f'[HF RFID]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
+            app.add_task(trySendDisplay(dockCode, 'STOP'))
         ipStopp = await getIPdisplay(dockCode)
         URL_STOPp = f'http://{ipStopp}'
         dataStopp = {"alarm":"0"}
@@ -422,6 +441,25 @@ async def dockHF(request, dockCode):
                 rStop2 = await requests.post(URL_STOPp2, json=dataStopp2, timeout = 5)
             except:
                 pass
+            ipStateStop2 = await getIPdisplay(dockCode2)
+            URL_StateStop2 = f'http://{ipStateStop2}'
+            dataStateStop2 = {"state":"0"}
+            try:
+                logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_StateStop2}')
+                rHF = await requests.post(URL_StateStop2, json=dataStateStop2, timeout = 5)
+                logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStateStop2}')
+                logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+            except:
+                delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
+                cursor.execute(delpul, [dockCode2, "TO DISPLAY"])
+                mydb.commit()
+                logger.error(f'[HF RFID]      :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+                pullHFERROR2 = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
+                valHFERROR2 = dockCode2, 'STOP', URL_StateStop2, str(now), "TO DISPLAY"
+                cursor.execute(pullHFERROR2, valHFERROR2)
+                mydb.commit()
+                logger.error(f'[HF RFID]      :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
+                app.add_task(trySendDisplay(dockCode2, "STOP"))
 
     elif UidDb != dataEPC and statusHFLD == "BOOKING":
         #ALARM
@@ -633,25 +671,25 @@ async def dockStop(request, dockCode):
     except:
         logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [QUERY] UPDATE ERROR')
 
-    ipStateStop = await getIPdisplay(dockCode)
-    URL_StateStop = f'http://{ipStateStop}'
-    dataStateStop = {"state":"0"}
-    try:
-        logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_StateStop}')
-        rHF = await requests.post(URL_StateStop, json=dataStateStop, timeout = 5)
-        logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] {dataStateStop}')
-        logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
-    except:
-        delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
-        cursor.execute(delpul, [dockCode, "TO DISPLAY"])
-        mydb.commit()
-        logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
-        pullHFERROR = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
-        valHFERROR = dockCode, 'STOP', URL_StateStop, str(now), "TO DISPLAY"
-        cursor.execute(pullHFERROR, valHFERROR)
-        mydb.commit()
-        logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
-        app.add_task(trySendDisplay(dockCode, 'STOP'))
+    # ipStateStop = await getIPdisplay(dockCode)
+    # URL_StateStop = f'http://{ipStateStop}'
+    # dataStateStop = {"state":"0"}
+    # try:
+    #     logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_StateStop}')
+    #     rHF = await requests.post(URL_StateStop, json=dataStateStop, timeout = 5)
+    #     logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] {dataStateStop}')
+    #     logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+    # except:
+    #     delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
+    #     cursor.execute(delpul, [dockCode, "TO DISPLAY"])
+    #     mydb.commit()
+    #     logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+    #     pullHFERROR = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
+    #     valHFERROR = dockCode, 'STOP', URL_StateStop, str(now), "TO DISPLAY"
+    #     cursor.execute(pullHFERROR, valHFERROR)
+    #     mydb.commit()
+    #     logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
+    #     app.add_task(trySendDisplay(dockCode, 'STOP'))
 
     if uidStopCount == uidStopCount2:
         logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] DOUBLE DECK DETECT')
