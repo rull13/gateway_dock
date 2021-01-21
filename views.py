@@ -9,6 +9,7 @@ from gateway_dock.config import reconMysql, reconnenctToDbServer, getIPdisplay, 
 from gateway_dock.sendServer import sendErrorDisplay, sendErrorTapIn
 from gateway_dock.workStat import Timeshift
 from gateway_dock.sendEmail  import sendEmailLog
+from sanic_cors import CORS, cross_origin
 import requests_async as requests
 gateway = Blueprint('gateway', url_prefix='')
 
@@ -1098,6 +1099,7 @@ async def reqState(request, number):
 
 
 @gateway.route("/mitigasi_HF/<dockCode>", methods=['GET', 'POST'])
+@cross_origin(gateway)
 async def mitigasiHF(request, dockCode):
     logger.info(f"[DATA IN]       :  [DOCK {dockCode}] {request.body.decode('utf-8')}")
     dataEPC = request.body.decode('utf-8').upper()
