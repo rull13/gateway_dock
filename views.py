@@ -1363,3 +1363,8 @@ async def mitigasiHF(request, dockCode):
 
     mydb.commit()
     return text('OK')
+
+
+@gateway.route("/<number>", methods=['GET','POST'])
+async def reqRandom(request, number):
+    return text('OK')
