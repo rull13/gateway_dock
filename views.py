@@ -27,7 +27,6 @@ async def trySendHfServer(dockNum = None, dockStat = None):
         app.add_task(trySendHfServer(dockNum, dockStat))
 
 # app.add_task(reconnenctToDbServer())
-
 async def reqTimeWork():
     await asyncio.sleep(10)
     try:
@@ -37,7 +36,6 @@ async def reqTimeWork():
     except:
         pass
 
-
 async def cekCountLoad():
     for x in range(1,25):
         if x < 25:
@@ -46,6 +44,16 @@ async def cekCountLoad():
             else:
                 dockName = f"A{x}"
         app.add_task(startDurationLoading(dockName))
+
+async def bookingSend(dockCode):
+    pass
+
+async def tapIn(dockCode):
+    pass
+
+async def tapOut(dockCode):
+    pass
+
 
 app.add_task(cekCountLoad())
 app.add_task(reconMysql())
@@ -478,17 +486,19 @@ async def dockStart(request, dockCode):
     date_ = now.strftime("%Y%m%d")
     time_ = now.strftime("%H:%M:%S")
     try:
-        getuidCount = "SELECT UID, POLICE_NO, STATUS FROM loading_dock WHERE DOCK = %s"
+        getuidCount = "SELECT UID, POLICE_NO, STATUS, LAST_UPDATE FROM loading_dock WHERE DOCK = %s"
         cursor.execute(getuidCount, [dockCode, ])
         GetuidCount = cursor.fetchone()
         uidgetCount = GetuidCount[0]
         policegetCount = GetuidCount[1]
         statusStartDock = GetuidCount[2]
+        lastUpdateStartCount = GetuidCount[3]
         logger.info(f'[START DOCK]    :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY SELECT UID')
     except:
         uidgetCount = "notfound"
         policegetCount = "notfound"
         statusDockCount = "notfound"
+        lastUpdateStartCount = now
         logger.error(f'[START DOCK]   :   [DOCK {dockCode}] [QUERY] [ERROR] SELECT DURATION ERROR')
     try:
         logger.info(f'[START DOCK]    :   [DOCK {dockCode}] CHECK DOUBLE DOCK')
@@ -570,7 +580,9 @@ async def dockStart(request, dockCode):
         except:
             logger.error(f'[START DOCK]   :   [DOCK {dockCode}] [ERROR] [QUERY] UPDATE TO DOCK {dockCode} ERROR')
     mydb.commit()
-    return text('OK')
+    timePrepare = int((now-lastUpdateStartCount).total_seconds())
+    y = json.dumps({'totalPrepare': timePrepare})
+    return text(y)
 
 
 @gateway.route("/dock/stop/<dockCode>", methods=['GET','POST'])
