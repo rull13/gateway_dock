@@ -45,14 +45,52 @@ async def cekCountLoad():
                 dockName = f"A{x}"
         app.add_task(startDurationLoading(dockName))
 
-async def bookingSend(dockCode):
-    pass
+async def bookingSend(dockCode, nopol):
+    for i in range(1,6):
+        await asyncio.sleep(15)
+        ipDisplay = await getIPdisplay(dockCode)
+        policeNumber = nopol
+        URL_BOOK = f'http://{ipDisplay}'
+        dataBook = {"nopol":f"{policeNumber}"}
+        try:
+            logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST PER : {i}')
+            logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK}')
+            rBooking = await requests.post(URL_BOOK, json=dataBook, timeout = 5)
+            logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataBook} TO DISPLAY')
+        except:
+            logger.error(f'[BOOKING]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
 
-async def tapIn(dockCode):
-    pass
 
-async def tapOut(dockCode):
-    pass
+
+async def tapInSend(dockCode):
+    for k in range(1,6):
+        await asyncio.sleep(15)
+        ipDisplayHF = await getIPdisplay(dockCode)
+        URL_HF = f'http://{ipDisplayHF}'
+        dataStartDisplay = {"state":"1"}
+        try:
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST PER : {k}')
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_HF}')
+            rHF = await requests.post(URL_HF, json=dataStartDisplay, timeout = 5)
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStartDisplay}')
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+        except:
+            logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+
+async def tapOutSend(dockCode):
+    for o in range(1,6):
+        await asyncio.sleep(15)
+        ipStateStop = await getIPdisplay(dockCode)
+        URL_StateStop = f'http://{ipStateStop}'
+        dataStateStop = {"state":"0"}
+        try:
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST PER : {o}')
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_StateStop}')
+            rHF = await requests.post(URL_StateStop, json=dataStateStop, timeout = 5)
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStateStop}')
+            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+        except:
+            logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
 
 
 app.add_task(cekCountLoad())
@@ -192,6 +230,7 @@ async def dockBook(request, dockCode):
     URL_BOOK = f'http://{ipDisplay}'
     dataBook = {"nopol":f"{policeNumber}"}
     try:
+        app.add_task(bookingSend(dockCode,policeNumber))
         logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK}')
         rBooking = await requests.post(URL_BOOK, json=dataBook, timeout = 5)
         logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataBook} TO DISPLAY')
@@ -205,6 +244,7 @@ async def dockBook(request, dockCode):
         cursor.execute(pullBookError, valBookError)
         logger.error(f'[BOOKING]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
         app.add_task(trySendDisplay(dockCode, 'BOOKING'))
+
         # app.add_task(sendEmailLog(f'ERROR SEND TO DISPLAY {dockCode}', 'BOOKING'))
 
     mydb.commit()
@@ -288,6 +328,7 @@ async def dockHF(request, dockCode):
         dataStartDisplay = {"state":"1"}
         dataBookPolice1 = {"nopol":f"{policeNumberHF}"}
         try:
+            app.add_task(tapInSend(dockCode))
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_HF}')
             rHF = await requests.post(URL_HF, json=dataStartDisplay, timeout = 5)
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStartDisplay}')
@@ -346,6 +387,7 @@ async def dockHF(request, dockCode):
             dataStartDisplay2 = {"state":"1"}
             dataBookPolice = {"nopol":f"{policeNumberHF2}"}
             try:
+                app.add_task(tapInSend(dockCode2))
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_HF2}')
                 rHF = await requests.post(URL_HF2, json=dataStartDisplay2, timeout = 5)
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStartDisplay2}')
@@ -411,6 +453,7 @@ async def dockHF(request, dockCode):
         URL_StateStop = f'http://{ipStateStop}'
         dataStateStop = {"state":"0"}
         try:
+            app.add_task(tapOutSend(dockCode))
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_StateStop}')
             rHF = await requests.post(URL_StateStop, json=dataStateStop, timeout = 5)
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStateStop}')
@@ -454,6 +497,7 @@ async def dockHF(request, dockCode):
             URL_StateStop2 = f'http://{ipStateStop2}'
             dataStateStop2 = {"state":"0"}
             try:
+                app.add_task(tapOutSend(dockCode2))
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_StateStop2}')
                 rHF = await requests.post(URL_StateStop2, json=dataStateStop2, timeout = 5)
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStateStop2}')
@@ -581,7 +625,7 @@ async def dockStart(request, dockCode):
             logger.error(f'[START DOCK]   :   [DOCK {dockCode}] [ERROR] [QUERY] UPDATE TO DOCK {dockCode} ERROR')
     mydb.commit()
     timePrepare = int((now-lastUpdateStartCount).total_seconds())
-    y = json.dumps({'totalPrepare': timePrepare})
+    y = json.dumps({'timePrepare': timePrepare})
     return text(y)
 
 
@@ -1124,7 +1168,7 @@ async def mitigasiHF(request, dockCode):
             cursor.execute(getReqActive, [dockCode, ])
             GetActive = cursor.fetchone()
             GetActiveStat = GetActive[3]
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] STATUS DOCK {GetActiveStat}')
+            logger.info(f'[MITIGASI]      :   [DOCK {dockCode}] STATUS DOCK {GetActiveStat}')
         except:
             GetActiveStat = "notfound"
         if GetActiveStat == 'DISABLE':
@@ -1132,7 +1176,7 @@ async def mitigasiHF(request, dockCode):
             ipDisplay = await getIPdisplay(dockCode)
             URL_BOOK = f'http://{ipDisplay}'
             try:
-                logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK} {dataActive} TO DISPLAY')
+                logger.info(f'[MITIGASI]      :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK} {dataActive} TO DISPLAY')
                 rBooking = await requests.post(URL_BOOK, json=dataActive, timeout = 5)
             except:
                 pass
@@ -1144,9 +1188,9 @@ async def mitigasiHF(request, dockCode):
         cursor.execute(updateHFLog, valHFLog)
         # logger.info(f'[BOOKING]       :   [LOG] {valBookingLog}')
         mydb.commit()
-        logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [LOG] SUCCESCFULLY UPDATE TO LOG DB DOCK {dockCode}')
+        logger.info(f'[MITIGASI]      :   [DOCK {dockCode}] [LOG] SUCCESCFULLY UPDATE TO LOG DB DOCK {dockCode}')
     except:
-        logger.error(f'[HF RFID]      :   [DOCK {dockCode}] [ERROR] [LOG] INSERT TO LOG ERROR')
+        logger.error(f'[MITIGASI]     :   [DOCK {dockCode}] [ERROR] [LOG] INSERT TO LOG ERROR')
     try:
         GetUidDock = "SELECT UID, POLICE_NO, STATUS, LAST_UPDATE FROM loading_dock WHERE DOCK = %s"
         cursor.execute(GetUidDock, [dockCode, ])
@@ -1155,15 +1199,15 @@ async def mitigasiHF(request, dockCode):
         PoliceNOHF = GetUid[1]
         statusHFLD = GetUid[2]
         LastTime = GetUid[3]
-        logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [QUERY] SELECT UID FROM DOCK {dockCode}')
-        logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [QUERY] {UidDb}')
+        logger.info(f'[MITIGASI]      :   [DOCK {dockCode}] [QUERY] SELECT UID FROM DOCK {dockCode}')
+        logger.info(f'[MITIGASI]      :   [DOCK {dockCode}] [QUERY] {UidDb}')
     except:
         UidDb = "OFF"
         PoliceNOHF = "OFF"
         statusHFLD = "OFF"
-        logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [QUERY] UID NOT FOUND IN DOCK {dockCode}')
+        logger.error(f'[MITIGASI      :   [DOCK {dockCode}] [ERROR] [QUERY] UID NOT FOUND IN DOCK {dockCode}')
     try:
-        logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [QUERY] CHECK DOUBLE DOCK')
+        logger.info(f'[MITIGASI]      :   [DOCK {dockCode}] [QUERY] CHECK DOUBLE DOCK')
         GetUidDock2 = "SELECT DOCK, UID, POLICE_NO, STATUS FROM loading_dock WHERE UID = %s AND DOCK != %s"
         cursor.execute(GetUidDock2, [dataEPC, dockCode])
         GetUid2 = cursor.fetchone()
@@ -1171,33 +1215,34 @@ async def mitigasiHF(request, dockCode):
         UidDb2 = GetUid2[1]
         PoliceNOHF2 = GetUid2[2]
         statusHFLD2 = GetUid2[3]
-        logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [QUERY] {UidDb2}')
+        logger.info(f'[MITIGASI]      :   [DOCK {dockCode}] [QUERY] {UidDb2}')
     except:
         dockCode2 = None
         UidDb2 = "OFF"
         PoliceNOHF2 = "OFF"
         statusHFLD2 = "OFF"
-        logger.info(f'[HF RIFD]       :   [DOCK {dockCode}] [QUERY] NO DOUBLE DOCK')
+        logger.info(f'[MITIGASI]      :   [DOCK {dockCode}] [QUERY] NO DOUBLE DOCK')
 
     if UidDb == dataEPC and statusHFLD == "BOOKING":
-        logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [TAP] UID MATCH')
+        logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode}] [TAP] UID MATCH')
         ipDisplayHF = await getIPdisplay(dockCode)
         policeNumberHF = PoliceNOHF
         URL_HF = f'http://{ipDisplayHF}'
         dataStartDisplay = {"state":"1"}
         dataBookPolice1 = {"nopol":f"{policeNumberHF}"}
         try:
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_HF}')
+            app.add_task(tapInSend(dockCode))
+            logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_HF}')
             rHF = await requests.post(URL_HF, json=dataStartDisplay, timeout = 5)
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStartDisplay}')
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+            logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode}] [SEND DISPLAY] {dataStartDisplay}')
+            logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
         except:
-            logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+            logger.error(f'[MITIGASI IN]  :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
             pullHFERROR = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
             valHFERROR = dockCode, 'START', URL_HF, str(now), "TO DISPLAY"
             cursor.execute(pullHFERROR, valHFERROR)
             mydb.commit()
-            logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
+            logger.error(f'[MITIGASI IN]  :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
             app.add_task(trySendDisplay(dockCode, 'START'))
 
         dataHF = {'uid':dataEPC,
@@ -1206,124 +1251,126 @@ async def mitigasiHF(request, dockCode):
         ipServerHF = await getIPServer(dockCode)
         URL_SERVERIN = f"http://{ipServerHF}/dock/in"
         try:
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND SERVER] {dataHF}')
+            logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode}] [SEND SERVER] {dataHF}')
             rHFServer = await requests.post(URL_SERVERIN, json=dataHF, timeout = 5)
             print(rHFServer.status_code)
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND SERVER] SUCCESCFULLY SEND TO {URL_SERVERIN}')
+            logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode}] [SEND SERVER] SUCCESCFULLY SEND TO {URL_SERVERIN}')
         except:
             delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
             cursor.execute(delpul, [dockCode, "TAP START IN"])
             mydb.commit()
-            logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SEND TO SERVER ERROR')
+            logger.error(f'[MITIGASI IN]  :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SEND TO SERVER ERROR')
             pullHFERROR = "INSERT INTO send_error (UID, DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s, %s)"
             valHFERROR = dataEPC, dockCode, 'TAP', URL_SERVERIN, str(now), "TAP START IN"
             cursor.execute(pullHFERROR, valHFERROR)
             mydb.commit()
-            logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SAVE TO DB PULLING')
+            logger.error(f'[MITIGASI IN]  :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SAVE TO DB PULLING')
             app.add_task(trySendHfServer(dockCode, 'TAP'))
         try:
             updateDockCount = "UPDATE dock_time_count SET UID = %s, STATUS = %s WHERE DOCK = %s"
             valDockCount = [dataEPC, 'TAP', dockCode]
             cursor.execute(updateDockCount,valDockCount)
             mydb.commit()
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE TO DOCK_COUNT')
+            logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE TO DOCK_COUNT')
         except:
-            logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [QUERY] ERROR TO UPDATE TO DOCK_COUNT')
+            logger.error(f'[MITIGASI IN]  :   [DOCK {dockCode}] [ERROR] [QUERY] ERROR TO UPDATE TO DOCK_COUNT')
         try:
             updateDockHF = "UPDATE loading_dock SET STATUS = %s, LAST_UPDATE = %s  WHERE DOCK = %s"
             valDockHF = ["TAP", str(now), dockCode]
             cursor.execute(updateDockHF,valDockHF)
             mydb.commit()
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE STATUS {dockCode}')
+            logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE STATUS {dockCode}')
         except:
-            logger.error(f'[HF RFID]      :   [DOCK {dockCode}] [ERROR] [QUERY] UPDATE STATUS TO DOCK {dockCode} ERROR')
+            logger.error(f'[MITIGASI IN]  :   [DOCK {dockCode}] [ERROR] [QUERY] UPDATE STATUS TO DOCK {dockCode} ERROR')
         if UidDb == UidDb2 and PoliceNOHF == PoliceNOHF2:
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] DOUBLE DOCK DETECT')
+            logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode2}] DOUBLE DOCK DETECT')
             ipDisplayHF2 = await getIPdisplay(dockCode2)
             policeNumberHF2 = PoliceNOHF2
             URL_HF2 = f'http://{ipDisplayHF2}'
             dataStartDisplay2 = {"state":"1"}
             dataBookPolice = {"nopol":f"{policeNumberHF2}"}
             try:
-                logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_HF2}')
+                app.add_task(tapInSend(dockCode2))
+                logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_HF2}')
                 rHF = await requests.post(URL_HF2, json=dataStartDisplay2, timeout = 5)
-                logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStartDisplay2}')
-                logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+                logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStartDisplay2}')
+                logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
             except:
-                logger.error(f'[HF RIFD]      :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+                logger.error(f'[MITIGASI IN]  :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
                 pullHFERROR = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
                 valHFERROR = dockCode2, 'START', URL_HF, str(now), "TO DISPLAY"
                 cursor.execute(pullHFERROR, valHFERROR)
                 mydb.commit()
-                logger.error(f'[HF RIFD]      :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
+                logger.error(f'[MITIGASI IN]  :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
                 app.add_task(trySendDisplay(dockCode2, 'START'))
             try:
                 updateDockCount2 = "UPDATE dock_time_count SET UID = %s, STATUS = %s WHERE DOCK = %s"
                 valDockCount2 = [UidDb2, 'TAP', dockCode2]
                 cursor.execute(updateDockCount2,valDockCount2)
                 mydb.commit()
-                logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [QUERY] SUCCESCFULLY UPDATE TO DOCK_COUNT')
+                logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode2}] [QUERY] SUCCESCFULLY UPDATE TO DOCK_COUNT')
             except:
-                logger.error(f'[HF RIFD]      :   [DOCK {dockCode2}] [ERROR] [QUERY] ERROR TO UPDATE TO DOCK_COUNT')
+                logger.error(f'[MITIGASI IN]  :   [DOCK {dockCode2}] [ERROR] [QUERY] ERROR TO UPDATE TO DOCK_COUNT')
             try:
                 updateDockHF2 = "UPDATE loading_dock SET STATUS = %s, LAST_UPDATE = %s  WHERE DOCK = %s"
                 valDockHF2 = ["TAP", str(now), dockCode2]
                 cursor.execute(updateDockHF2,valDockHF2)
                 mydb.commit()
-                logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [QUERY] SUCCESCFULLY UPDATE STATUS {dockCode2}')
+                logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode2}] [QUERY] SUCCESCFULLY UPDATE STATUS {dockCode2}')
             except:
-                logger.error(f'[HF RFID]      :   [DOCK {dockCode2}] [ERROR] [QUERY] UPDATE STATUS TO DOCK {dockCode2} ERROR')
+                logger.error(f'[MITIGASI IN]  :   [DOCK {dockCode2}] [ERROR] [QUERY] UPDATE STATUS TO DOCK {dockCode2} ERROR')
 
 
     elif UidDb == dataEPC and statusHFLD == "STOP":
-        logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [TAP] UID MATCH')
+        logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode}] [TAP] UID MATCH')
         timeTerpal = int((now-LastTime).total_seconds())
         dataHF = {"uid":dataEPC,
                     "timeTerpal":timeTerpal,
                     "dockCode":dockCode}
                     #"dockSekunder":dockCode2}
-        logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [TIME] TERPAL TIME {timeTerpal}')
+        logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode}] [TIME] TERPAL TIME {timeTerpal}')
         ipServerHF = await getIPServer(dockCode)
         URL_SERVEROUT = f"http://{ipServerHF}/dock/out"
         try:
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND SERVER] {dataHF}')
+            logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode}] [SEND SERVER] {dataHF}')
             rHFServer = await requests.post(URL_SERVEROUT, json=dataHF, timeout = 5)
             print(rHFServer.status_code)
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND SERVER] SUCCESCFULLY SEND TO {URL_SERVEROUT}')
+            logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode}] [SEND SERVER] SUCCESCFULLY SEND TO {URL_SERVEROUT}')
         except:
-            logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SEND TO SERVER ERROR')
+            logger.error(f'[MITIGASI OUT] :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SEND TO SERVER ERROR')
             pullHFERROR = "INSERT INTO send_error (UID, DOCK, STATUS, URL, TOTALTIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s, %s)"
             valHFERROR = dataEPC, dockCode, 'TERPAL', URL_SERVEROUT, timeTerpal, "TAP START IN"
             cursor.execute(pullHFERROR, valHFERROR)
             mydb.commit()
-            logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SAVE TO DB PULLING')
+            logger.error(f'[MITIGASI OUT] :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SAVE TO DB PULLING')
             app.add_task(trySendHfServer(dockCode, 'TERPAL'))
         try:
             updateTerpalDock = "UPDATE loading_dock SET UID = %s, POLICE_NO = %s, STATUS = %s, LAST_UPDATE = %s  WHERE DOCK = %s"
             valTerpalDock = [None, None, "STOP", str(now), dockCode]
             cursor.execute(updateTerpalDock,valTerpalDock)
             mydb.commit()
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE LOADING DOCK STATUS {dockCode}')
+            logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE LOADING DOCK STATUS {dockCode}')
         except:
-            logger.error(f'[HF RFID]      :   [DOCK {dockCode}] [ERROR] [QUERY] UPDATE TO LOADING DOCK ERROR')
+            logger.error(f'[MITIGASI OUT] :   [DOCK {dockCode}] [ERROR] [QUERY] UPDATE TO LOADING DOCK ERROR')
         ipStateStop = await getIPdisplay(dockCode)
         URL_StateStop = f'http://{ipStateStop}'
         dataStateStop = {"state":"0"}
         try:
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_StateStop}')
+            app.add_task(tapOutSend(dockCode))
+            logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_StateStop}')
             rHF = await requests.post(URL_StateStop, json=dataStateStop, timeout = 5)
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStateStop}')
-            logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+            logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode}] [SEND DISPLAY] {dataStateStop}')
+            logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
         except:
             delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
             cursor.execute(delpul, [dockCode, "TO DISPLAY"])
             mydb.commit()
-            logger.error(f'[HF RFID]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+            logger.error(f'[MITIGASI OUT] :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
             pullHFERROR = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
             valHFERROR = dockCode, 'STOP', URL_StateStop, str(now), "TO DISPLAY"
             cursor.execute(pullHFERROR, valHFERROR)
             mydb.commit()
-            logger.error(f'[HF RFID]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
+            logger.error(f'[MITIGASI OUT] :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
             app.add_task(trySendDisplay(dockCode, 'STOP'))
         ipStopp = await getIPdisplay(dockCode)
         URL_STOPp = f'http://{ipStopp}'
@@ -1339,9 +1386,9 @@ async def mitigasiHF(request, dockCode):
                 valTerpalDock = [None, None, "STOP", str(now), dockCode2]
                 cursor.execute(updateTerpalDock,valTerpalDock)
                 mydb.commit()
-                logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [QUERY] SUCCESCFULLY UPDATE LOADING DOCK STATUS {dockCode}')
+                logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode2}] [QUERY] SUCCESCFULLY UPDATE LOADING DOCK STATUS {dockCode}')
             except:
-                logger.error(f'[HF RFID]      :   [DOCK {dockCode2}] [ERROR] [QUERY] UPDATE TO LOADING DOCK ERROR')
+                logger.error(f'[MITIGASI OUT] :   [DOCK {dockCode2}] [ERROR] [QUERY] UPDATE TO LOADING DOCK ERROR')
             ipStopp2 = await getIPdisplay(dockCode2)
             URL_STOPp2 = f'http://{ipStopp2}'
             dataStopp2 = {"alarm":"0"}
@@ -1353,20 +1400,21 @@ async def mitigasiHF(request, dockCode):
             URL_StateStop2 = f'http://{ipStateStop2}'
             dataStateStop2 = {"state":"0"}
             try:
-                logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_StateStop2}')
+                app.add_task(tapOutSend(dockCode2))
+                logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_StateStop2}')
                 rHF = await requests.post(URL_StateStop2, json=dataStateStop2, timeout = 5)
-                logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStateStop2}')
-                logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+                logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStateStop2}')
+                logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
             except:
                 delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
                 cursor.execute(delpul, [dockCode2, "TO DISPLAY"])
                 mydb.commit()
-                logger.error(f'[HF RFID]      :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+                logger.error(f'[MITIGASI OUT] :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
                 pullHFERROR2 = "INSERT INTO send_error (DOCK, STATUS, URL, TIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s)"
                 valHFERROR2 = dockCode2, 'STOP', URL_StateStop2, str(now), "TO DISPLAY"
                 cursor.execute(pullHFERROR2, valHFERROR2)
                 mydb.commit()
-                logger.error(f'[HF RFID]      :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
+                logger.error(f'[MITIGASI OUT] :   [DOCK {dockCode2}] [ERROR] [SEND DISPLAY] SAVE TO DB PULLING')
                 app.add_task(trySendDisplay(dockCode2, "STOP"))
 
     elif UidDb != dataEPC and statusHFLD == "BOOKING":
