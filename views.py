@@ -46,8 +46,8 @@ async def cekCountLoad():
         app.add_task(startDurationLoading(dockName))
 
 async def bookingSend(dockCode, nopol):
-    for i in range(1,6):
-        await asyncio.sleep(15)
+    for i in range(1,11):
+        await asyncio.sleep(10)
         ipDisplay = await getIPdisplay(dockCode)
         policeNumber = nopol
         URL_BOOK = f'http://{ipDisplay}'
@@ -63,8 +63,8 @@ async def bookingSend(dockCode, nopol):
 
 
 async def tapInSend(dockCode):
-    for k in range(1,6):
-        await asyncio.sleep(15)
+    for k in range(1,11):
+        await asyncio.sleep(10)
         ipDisplayHF = await getIPdisplay(dockCode)
         URL_HF = f'http://{ipDisplayHF}'
         dataStartDisplay = {"state":"1"}
@@ -78,8 +78,8 @@ async def tapInSend(dockCode):
             logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
 
 async def tapOutSend(dockCode):
-    for o in range(1,6):
-        await asyncio.sleep(15)
+    for o in range(1,11):
+        await asyncio.sleep(10)
         ipStateStop = await getIPdisplay(dockCode)
         URL_StateStop = f'http://{ipStateStop}'
         dataStateStop = {"state":"0"}
