@@ -69,10 +69,12 @@ async def tapInSend(dockCode):
         ipDisplayHF = await getIPdisplay(dockCode)
         URL_HF = f'http://{ipDisplayHF}'
         dataStartDisplay = {"state":"1"}
+        dataStartDisplay = json.dumps(dataStartDisplay, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
         try:
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST PER : {k}')
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_HF}')
-            rHF = await requests.post(URL_HF, json=dataStartDisplay, timeout = 5)
+            rHF = await requests.post(URL_HF, dataStartDisplay,headers=newHeaders, timeout = 5)
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStartDisplay}')
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
         except:
@@ -328,11 +330,12 @@ async def dockHF(request, dockCode):
         policeNumberHF = PoliceNOHF
         URL_HF = f'http://{ipDisplayHF}'
         dataStartDisplay = {"state":"1"}
-        dataBookPolice1 = {"nopol":f"{policeNumberHF}"}
+        dataStartDisplay = json.dumps(dataStartDisplay, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
         try:
             app.add_task(tapInSend(dockCode))
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_HF}')
-            rHF = await requests.post(URL_HF, json=dataStartDisplay, timeout = 5)
+            rHF = await requests.post(URL_HF, dataStartDisplay,headers=newHeaders, timeout = 5)
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStartDisplay}')
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
         except:
@@ -387,11 +390,13 @@ async def dockHF(request, dockCode):
             policeNumberHF2 = PoliceNOHF2
             URL_HF2 = f'http://{ipDisplayHF2}'
             dataStartDisplay2 = {"state":"1"}
+            dataStartDisplay2 = json.dumps(dataStartDisplay2, separators=(',', ':'))
+            newHeaders = {'Content-type': 'application/json'}
             dataBookPolice = {"nopol":f"{policeNumberHF2}"}
             try:
                 app.add_task(tapInSend(dockCode2))
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_HF2}')
-                rHF = await requests.post(URL_HF2, json=dataStartDisplay2, timeout = 5)
+                rHF = await requests.post(URL_HF2, dataStartDisplay2,headers=newHeaders, timeout = 5)
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStartDisplay2}')
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
             except:
@@ -1231,11 +1236,13 @@ async def mitigasiHF(request, dockCode):
         policeNumberHF = PoliceNOHF
         URL_HF = f'http://{ipDisplayHF}'
         dataStartDisplay = {"state":"1"}
+        dataStartDisplay = json.dumps(dataStartDisplay, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
         dataBookPolice1 = {"nopol":f"{policeNumberHF}"}
         try:
             app.add_task(tapInSend(dockCode))
             logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_HF}')
-            rHF = await requests.post(URL_HF, json=dataStartDisplay, timeout = 5)
+            rHF = await requests.post(URL_HF, dataStartDisplay,headers=newHeaders, timeout = 5)
             logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode}] [SEND DISPLAY] {dataStartDisplay}')
             logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
         except:
@@ -1290,11 +1297,13 @@ async def mitigasiHF(request, dockCode):
             policeNumberHF2 = PoliceNOHF2
             URL_HF2 = f'http://{ipDisplayHF2}'
             dataStartDisplay2 = {"state":"1"}
+            dataStartDisplay1 = json.dumps(dataStartDisplay1, separators=(',', ':'))
+            newHeaders = {'Content-type': 'application/json'}
             dataBookPolice = {"nopol":f"{policeNumberHF2}"}
             try:
                 app.add_task(tapInSend(dockCode2))
                 logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_HF2}')
-                rHF = await requests.post(URL_HF2, json=dataStartDisplay2, timeout = 5)
+                rHF = await requests.post(URL_HF2, dataStartDisplay2, headers=newHeaders,timeout = 5)
                 logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStartDisplay2}')
                 logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
             except:
