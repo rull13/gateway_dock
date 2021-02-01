@@ -86,10 +86,12 @@ async def tapOutSend(dockCode):
         ipStateStop = await getIPdisplay(dockCode)
         URL_StateStop = f'http://{ipStateStop}'
         dataStateStop = {"state":"0"}
+        dataStateStop = json.dumps(dataStateStop, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
         try:
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST PER : {o}')
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_StateStop}')
-            rHF = await requests.post(URL_StateStop, json=dataStateStop, timeout = 5)
+            rHF = await requests.post(URL_StateStop, dataStateStop,headers=newHeaders, timeout = 5)
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStateStop}')
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
         except:
@@ -459,10 +461,12 @@ async def dockHF(request, dockCode):
         ipStateStop = await getIPdisplay(dockCode)
         URL_StateStop = f'http://{ipStateStop}'
         dataStateStop = {"state":"0"}
+        dataStateStop = json.dumps(dataStateStop, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
         try:
             app.add_task(tapOutSend(dockCode))
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_StateStop}')
-            rHF = await requests.post(URL_StateStop, json=dataStateStop, timeout = 5)
+            rHF = await requests.post(URL_StateStop, dataStateStop, headers=newHeaders, timeout = 5)
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStateStop}')
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
         except:
@@ -503,10 +507,12 @@ async def dockHF(request, dockCode):
             ipStateStop2 = await getIPdisplay(dockCode2)
             URL_StateStop2 = f'http://{ipStateStop2}'
             dataStateStop2 = {"state":"0"}
+            dataStateStop2 = json.dumps(dataStateStop2, separators=(',', ':'))
+            newHeaders = {'Content-type': 'application/json'}
             try:
                 app.add_task(tapOutSend(dockCode2))
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_StateStop2}')
-                rHF = await requests.post(URL_StateStop2, json=dataStateStop2, timeout = 5)
+                rHF = await requests.post(URL_StateStop2, dataStateStop2, headers= newHeaders, timeout = 5)
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStateStop2}')
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
             except:
@@ -1151,9 +1157,11 @@ async def reqState(request, number):
             dataState = {"state":"0"}
         ipDisplay = await getIPdisplay(dockCode)
         URL_BOOK = f'http://{ipDisplay}'
+        dataState = json.dumps(dataState, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
         try:
             logger.info(f'[REQ STATE]     :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {dataState} {URL_BOOK}')
-            rBooking = await requests.post(URL_BOOK, json=dataState, timeout = 5)
+            rBooking = await requests.post(URL_BOOK, dataState, headers= newHeaders, timeout = 5)
             logger.info(f'[REQ STATE]     :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataState} TO DISPLAY')
         except:
             logger.error(f'[REQ STATE]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY]')
@@ -1297,7 +1305,7 @@ async def mitigasiHF(request, dockCode):
             policeNumberHF2 = PoliceNOHF2
             URL_HF2 = f'http://{ipDisplayHF2}'
             dataStartDisplay2 = {"state":"1"}
-            dataStartDisplay1 = json.dumps(dataStartDisplay1, separators=(',', ':'))
+            dataStartDisplay2 = json.dumps(dataStartDisplay2, separators=(',', ':'))
             newHeaders = {'Content-type': 'application/json'}
             dataBookPolice = {"nopol":f"{policeNumberHF2}"}
             try:
@@ -1366,10 +1374,12 @@ async def mitigasiHF(request, dockCode):
         ipStateStop = await getIPdisplay(dockCode)
         URL_StateStop = f'http://{ipStateStop}'
         dataStateStop = {"state":"0"}
+        dataStateStop = json.dumps(dataStateStop, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
         try:
             app.add_task(tapOutSend(dockCode))
             logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_StateStop}')
-            rHF = await requests.post(URL_StateStop, json=dataStateStop, timeout = 5)
+            rHF = await requests.post(URL_StateStop, dataStateStop, headers = newHeaders, timeout = 5)
             logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode}] [SEND DISPLAY] {dataStateStop}')
             logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
         except:
@@ -1410,10 +1420,12 @@ async def mitigasiHF(request, dockCode):
             ipStateStop2 = await getIPdisplay(dockCode2)
             URL_StateStop2 = f'http://{ipStateStop2}'
             dataStateStop2 = {"state":"0"}
+            dataStateStop2 = json.dumps(dataStateStop2, separators=(',', ':'))
+            newHeaders = {'Content-type': 'application/json'}
             try:
                 app.add_task(tapOutSend(dockCode2))
                 logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_StateStop2}')
-                rHF = await requests.post(URL_StateStop2, json=dataStateStop2, timeout = 5)
+                rHF = await requests.post(URL_StateStop2, dataStateStop2,headers=newHeaders, timeout = 5)
                 logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode2}] [SEND DISPLAY] {dataStateStop2}')
                 logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode2}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
             except:
