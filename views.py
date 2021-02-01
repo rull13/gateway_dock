@@ -982,7 +982,7 @@ async def dockEnable(request, dockCode):
     newHeaders = {'Content-type': 'application/json'}
     try:
         logger.info(f'[ENABLE DOCK]   :   [DOCK {dockCode}] [SEND DISPLAY] SEND GET {URL_Enable}')
-        rEnable = await requests.post(URL_Enable, dataEnable,heades=newHeaders ,timeout = 5)
+        rEnable = await requests.post(URL_Enable, dataEnable,headers=newHeaders ,timeout = 5)
         logger.info(f'[ENABLE DOCK]   :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND GET TO DISPLAY')
         #AWAIT STAT ALARM
     except:
