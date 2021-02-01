@@ -2,6 +2,7 @@ import asyncio
 from gateway_dock import cursor, mydb, app, logger
 from datetime import datetime, date, timedelta
 import MySQLdb
+import json
 import requests_async as requests
 
 async def sendErrorDisplay(dock=None, dockStatus=None):
@@ -64,9 +65,10 @@ async def sendErrorDisplay(dock=None, dockStatus=None):
             #ada dockCode
             try:
                 dataErrorBook = {"nopol":f"{ErrorNoPol}"}
+                dataErrorBook = json.dumps(dataErrorBook, separators=(',', ':'))
                 logger.info(f'[PULL BOOKING]  : [SEND DISPLAY]  [DOCK {DockErrorBook}] SEND POST {dataErrorBook}')
                 logger.info(f'[PULL BOOKING]  : [SEND DISPLAY]  [DOCK {DockErrorBook}] SEND TO URL {urlErrorBook}')
-                rBookingError = await requests.post(urlErrorBook, json=dataErrorBook, timeout = 5)
+                rBookingError = await requests.post(urlErrorBook, dataErrorBook, timeout = 5)
                 logger.info(f'[PULL BOOKING]  : [SEND DISPLAY]  [DOCK {DockErrorBook}] SUCCESCFULLY SEND GET TO DISPLAY')
                 sqldelBook = 'DELETE FROM send_error WHERE id = %s'
                 cursor.execute(sqldelBook, [idErrorBook,])

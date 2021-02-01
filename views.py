@@ -52,10 +52,11 @@ async def bookingSend(dockCode, nopol):
         policeNumber = nopol
         URL_BOOK = f'http://{ipDisplay}'
         dataBook = {"nopol":f"{policeNumber}"}
+        dataBook = json.dumps(dataBook, separators=(',', ':'))
         try:
             logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST PER : {i}')
             logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK}')
-            rBooking = await requests.post(URL_BOOK, json=dataBook, timeout = 5)
+            rBooking = await requests.post(URL_BOOK, dataBook, timeout = 5)
             logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataBook} TO DISPLAY')
         except:
             logger.error(f'[BOOKING]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
@@ -229,10 +230,11 @@ async def dockBook(request, dockCode):
     policeNumber = data_dock['policeNo'].upper()
     URL_BOOK = f'http://{ipDisplay}'
     dataBook = {"nopol":f"{policeNumber}"}
+    dataBook = json.dumps(dataBook, separators=(',', ':'))
     try:
         app.add_task(bookingSend(dockCode,policeNumber))
         logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK}')
-        rBooking = await requests.post(URL_BOOK, json=dataBook, timeout = 5)
+        rBooking = await requests.post(URL_BOOK, dataBook, timeout = 5)
         logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataBook} TO DISPLAY')
     except:
         delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
