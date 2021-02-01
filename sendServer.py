@@ -128,7 +128,7 @@ async def sendErrorDisplay(dock=None, dockStatus=None):
                 newHeaders = {'Content-type': 'application/json'}
                 logger.info(f'[PULL STOP]     : [SEND DISPLAY]  [DOCK {DockErrorBook}] SEND POST {dataErrorBook}')
                 logger.info(f'[PULL STOP]     : [SEND DISPLAY]  [DOCK {DockErrorBook}] SEND TO URL {urlErrorBook}')
-                rBookingError = await requests.post(urlErrorBook, dataErrorBook,headers,newHeaders, timeout = 5)
+                rBookingError = await requests.post(urlErrorBook, dataErrorBook,headers = newHeaders, timeout = 5)
                 logger.info(f'[PULL STOP]     : [SEND DISPLAY]  [DOCK {DockErrorBook}] SUCCESCFULLY SEND POST TO DISPLAY')
                 sqldelBook = 'DELETE FROM send_error WHERE id = %s'
                 cursor.execute(sqldelBook, [idErrorBook,])
@@ -138,9 +138,11 @@ async def sendErrorDisplay(dock=None, dockStatus=None):
         elif statErrorBook == 'DISABLE':
             try:
                 dataErrorBook = {"active":"0"}
+                dataErrorBook = json.dumps(dataErrorBook, separators=(',', ':'))
+                newHeaders = {'Content-type': 'application/json'}
                 logger.info(f'[PULL DISABLE]  : [SEND DISPLAY]  [DOCK {DockErrorBook}] SEND POST {dataErrorBook}')
                 logger.info(f'[PULL DISABLE]  : [SEND DISPLAY]  [DOCK {DockErrorBook}] SEND TO URL {urlErrorBook}')
-                rBookingError = await requests.post(urlErrorBook, json=dataErrorBook, timeout = 5)
+                rBookingError = await requests.post(urlErrorBook, dataErrorBook,headers = newHeaders ,timeout = 5)
                 logger.info(f'[PULL DISABLE]  : [SEND DISPLAY]  [DOCK {DockErrorBook}] SUCCESCFULLY SEND POST TO DISPLAY')
                 sqldelBook = 'DELETE FROM send_error WHERE id = %s'
                 cursor.execute(sqldelBook, [idErrorBook,])
@@ -150,9 +152,11 @@ async def sendErrorDisplay(dock=None, dockStatus=None):
         elif statErrorBook == 'ENABLE':
             try:
                 dataErrorBook = {"active":"1"}
+                dataErrorBook = json.dumps(dataErrorBook, separators=(',', ':'))
+                newHeaders = {'Content-type': 'application/json'}
                 logger.info(f'[PULL ENABLE]   : [SEND DISPLAY] [DOCK {DockErrorBook}] SEND POST {dataErrorBook}')
                 logger.info(f'[PULL ENABLE]   : [SEND DISPLAY] [DOCK {DockErrorBook}] SEND TO URL {urlErrorBook}')
-                rBookingError = await requests.post(urlErrorBook, json=dataErrorBook, timeout = 5)
+                rBookingError = await requests.post(urlErrorBook, dataErrorBook,headers = newHeaders ,timeout = 5)
                 logger.info(f'[PULL ENABLE]   : [SEND DISPLAY] [DOCK {DockErrorBook}] SUCCESCFULLY SEND POST TO DISPLAY')
                 sqldelBook = 'DELETE FROM send_error WHERE id = %s'
                 cursor.execute(sqldelBook, [idErrorBook,])

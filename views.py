@@ -280,11 +280,13 @@ async def dockHF(request, dockCode):
             GetActiveStat = "notfound"
         if GetActiveStat == 'DISABLE':
             dataActive = {"active":"0"}
+            dataActive = json.dumps(dataActive, separators=(',', ':'))
+            newHeaders = {'Content-type': 'application/json'}
             ipDisplay = await getIPdisplay(dockCode)
             URL_BOOK = f'http://{ipDisplay}'
             try:
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK} {dataActive} TO DISPLAY')
-                rBooking = await requests.post(URL_BOOK, json=dataActive, timeout = 5)
+                rBooking = await requests.post(URL_BOOK, dataActive,headers = newHeaders ,timeout = 5)
             except:
                 pass
         mydb.commit()
@@ -926,9 +928,11 @@ async def dockDisable(request, dockCode):
     ipDisable = await getIPdisplay(dockCode)
     URL_Disable = f'http://{ipDisable}'
     dataDisable = {"active":"0"}
+    dataDisable = json.dumps(dataDisable, separators=(',', ':'))
+    newHeaders = {'Content-type': 'application/json'}
     try:
         logger.info(f'[DISABLE DOCK]  :   [DOCK {dockCode}] [SEND DISPLAY] SEND GET {URL_Disable}')
-        rDisable = await requests.post(URL_Disable, json=dataDisable, timeout = 5)
+        rDisable = await requests.post(URL_Disable, dataDisable,headers= newHeaders ,timeout = 5)
         logger.info(f'[DISABLE DOCK]  :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND GET TO DISPLAY')
         #AWAIT STAT ALARM
     except:
@@ -974,9 +978,11 @@ async def dockEnable(request, dockCode):
     ipEnable = await getIPdisplay(dockCode)
     URL_Enable = f'http://{ipEnable}'
     dataEnable = {"active":"1"}
+    dataEnable = json.dumps(dataEnable, separators=(',', ':'))
+    newHeaders = {'Content-type': 'application/json'}
     try:
         logger.info(f'[ENABLE DOCK]   :   [DOCK {dockCode}] [SEND DISPLAY] SEND GET {URL_Enable}')
-        rEnable = await requests.post(URL_Enable, json=dataEnable, timeout = 5)
+        rEnable = await requests.post(URL_Enable, dataEnable,heades=newHeaders ,timeout = 5)
         logger.info(f'[ENABLE DOCK]   :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND GET TO DISPLAY')
         #AWAIT STAT ALARM
     except:
@@ -1131,9 +1137,11 @@ async def reqActive(request, number):
             dataActive = {"active":"0"}
         ipDisplay = await getIPdisplay(dockCode)
         URL_BOOK = f'http://{ipDisplay}'
+        dataActive = json.dumps(dataActive, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
         try:
             logger.info(f'[REQ ACTIVE]    :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {dataActive} {URL_BOOK}')
-            rBooking = await requests.post(URL_BOOK, json=dataActive, timeout = 5)
+            rBooking = await requests.post(URL_BOOK, dataActive,headers = newHeaders ,timeout = 5)
             logger.info(f'[REQ ACTIVE]    :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataActive} TO DISPLAY')
         except:
             logger.error(f'[REQ ACTIVE]   :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] ')
@@ -1207,9 +1215,11 @@ async def mitigasiHF(request, dockCode):
             dataActive = {"active":"0"}
             ipDisplay = await getIPdisplay(dockCode)
             URL_BOOK = f'http://{ipDisplay}'
+            dataActive = json.dumps(dataActive, separators=(',', ':'))
+            newHeaders = {'Content-type': 'application/json'}
             try:
                 logger.info(f'[MITIGASI]      :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK} {dataActive} TO DISPLAY')
-                rBooking = await requests.post(URL_BOOK, json=dataActive, timeout = 5)
+                rBooking = await requests.post(URL_BOOK, dataActive, headers=newHeaders,timeout = 5)
             except:
                 pass
         mydb.commit()
