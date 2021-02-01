@@ -154,9 +154,11 @@ async def startDurationLoading(dockCode):
             if statAlarmCount == "OFF":
                 URL_ALARM_COUNT = f'http://{ipDisplay}'
                 dataALARMCOUNT = {'alarm':"1"}
+                dataALARMCOUNT = json.dumps(dataALARMCOUNT, separators=(',', ':'))
+                newHeaders = {'Content-type': 'application/json'}
                 try:
                     logger.info(f'[COUNT DOCK]    :   [DOCK {dockCode}] [SEND DISPLAY] [ALARM] SEND {dataALARMCOUNT} {URL_ALARM_COUNT}')
-                    rCOUNT = await requests.post(URL_ALARM_COUNT, json=dataALARMCOUNT, timeout = 5)
+                    rCOUNT = await requests.post(URL_ALARM_COUNT, dataALARMCOUNT, headers = newHeaders,timeout = 5)
                     logger.info(f'[COUNT DOCK]    :   [DOCK {dockCode}] [SEND DISPLAY] [ALARM] SUCCESCFULLY SEND POST TO DISPLAY')
                 except:
                     delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
@@ -201,8 +203,10 @@ async def startDurationLoading(dockCode):
         ipStopp = await getIPdisplay(dockCode)
         URL_STOPp = f'http://{ipStopp}'
         dataStopp = {"alarm":"0"}
+        dataStopp = json.dumps(dataStopp, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
         try:
-            rStop1 = await requests.post(URL_STOPp, json=dataStopp, timeout = 5)
+            rStop1 = await requests.post(URL_STOPp, dataStopp,headers = newHeaders, timeout = 5)
         except:
             pass
 
@@ -483,8 +487,11 @@ async def dockHF(request, dockCode):
         ipStopp = await getIPdisplay(dockCode)
         URL_STOPp = f'http://{ipStopp}'
         dataStopp = {"alarm":"0"}
+        dataStopp = json.dumps(dataStopp, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
+
         try:
-            rStop1 = await requests.post(URL_STOPp, json=dataStopp, timeout = 5)
+            rStop1 = await requests.post(URL_STOPp, dataStopp,headers = newHeaders ,timeout = 5)
         except:
             pass
         if UidDb == UidDb2 and PoliceNOHF == PoliceNOHF2:
@@ -500,8 +507,10 @@ async def dockHF(request, dockCode):
             ipStopp2 = await getIPdisplay(dockCode2)
             URL_STOPp2 = f'http://{ipStopp2}'
             dataStopp2 = {"alarm":"0"}
+            dataStopp2 = json.dumps(dataStopp2, separators=(',', ':'))
+            newHeaders = {'Content-type': 'application/json'}
             try:
-                rStop2 = await requests.post(URL_STOPp2, json=dataStopp2, timeout = 5)
+                rStop2 = await requests.post(URL_STOPp2, dataStopp2,headers= newHeaders ,timeout = 5)
             except:
                 pass
             ipStateStop2 = await getIPdisplay(dockCode2)
@@ -708,9 +717,11 @@ async def dockStop(request, dockCode):
         ipStop = await getIPdisplay(dockCode)
         URL_STOP = f'http://{ipStop}'
         dataStop = {"alarm":"0"}
+        dataStop = json.dumps(dataStop, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
         try:
             logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [ALARM] [SEND DISPLAY] SEND {dataStop} {URL_STOP}')
-            rStop = await requests.post(URL_STOP, json=dataStop, timeout = 5)
+            rStop = await requests.post(URL_STOP, dataStop,headers = newHeaders ,timeout = 5)
             logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [ALARM] [SEND DISPLAY] SEUCCESFULLY SEND ALARM')
             #AWAIT STAT ALARM
         except:
@@ -789,9 +800,11 @@ async def dockStop(request, dockCode):
             ipStop2 = await getIPdisplay(dockCode2)
             URL_STOP2 = f'http://{ipStop2}'
             dataStop2 = {"alarm":"0"}
+            dataStop2 = json.dumps(dataStop2, separators=(',', ':'))
+            newHeaders = {'Content-type': 'application/json'}
             try:
                 logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [ALARM] [SEND DISPLAY] SEND {dataStop2} {URL_STOP2}')
-                rStop = await requests.post(URL_STOP2, json=dataStop2, timeout = 5)
+                rStop = await requests.post(URL_STOP2, dataStop2, headers=newHeaders ,timeout = 5)
                 logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [ALARM] [SEND DISPLAY] SEUCCESFULLY SEND ALARM OFF')
                 #AWAIT STAT ALARM
             except:
@@ -859,9 +872,11 @@ async def dockAlarmStop(request, dockCode):
     ipStopAlarm = await getIPdisplay(dockCode)
     URL_STOPAlarm = f'http://{ipStop}'
     dataStopAlarm = {"alarm":"0"}
+    dataStopAlarm= json.dumps(dataStopAlarm, separators=(',', ':'))
+    newHeaders = {'Content-type': 'application/json'}
     try:
         logger.info(f'[STOP ALARM]    :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_STOP}')
-        rStopAlarm = await requests.post(URL_STOPALARM, json=dataStopAlarm, timeout = 5)
+        rStopAlarm = await requests.post(URL_STOPALARM, dataStopAlarm, headers = newHeaders,timeout = 5)
         logger.info(f'[STOP ALARM]    :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
         #AWAIT STAT ALARM
     except:
@@ -1069,11 +1084,13 @@ async def reqNopol(request, number):
             policeNumber = policeNopol.upper()
             URL_BOOK = f'http://{ipDisplay}'
             dataBook = {"nopol":f"{policeNumber}"}
+            dataBook = json.dumps(dataBook, separators=(',', ':'))
+            newHeaders = {'Content-type': 'application/json'}
         except:
             pass
         try:
             logger.info(f'[REQ NOPOL]     :   [DOCK {dockCode}] [SEND DISPLAY] SEND {dataBook} {URL_BOOK}')
-            rBooking = await requests.post(URL_BOOK, json=dataBook, timeout = 5)
+            rBooking = await requests.post(URL_BOOK,dataBook,headers = newHeaders ,timeout = 5)
             logger.info(f'[REQ NOPOL]     :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataBook} TO DISPLAY')
         except:
             logger.error(f'[REQ NOPOL]    :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY]')
@@ -1396,8 +1413,10 @@ async def mitigasiHF(request, dockCode):
         ipStopp = await getIPdisplay(dockCode)
         URL_STOPp = f'http://{ipStopp}'
         dataStopp = {"alarm":"0"}
+        dataStopp= json.dumps(dataStopp, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
         try:
-            rStop1 = await requests.post(URL_STOPp, json=dataStopp, timeout = 5)
+            rStop1 = await requests.post(URL_STOPp,dataStopp,headers = newHeaders ,timeout = 5)
         except:
             pass
         if UidDb == UidDb2 and PoliceNOHF == PoliceNOHF2:
@@ -1413,8 +1432,10 @@ async def mitigasiHF(request, dockCode):
             ipStopp2 = await getIPdisplay(dockCode2)
             URL_STOPp2 = f'http://{ipStopp2}'
             dataStopp2 = {"alarm":"0"}
+            dataStopp2= json.dumps(dataStopp2, separators=(',', ':'))
+            newHeaders = {'Content-type': 'application/json'}
             try:
-                rStop2 = await requests.post(URL_STOPp2, json=dataStopp2, timeout = 5)
+                rStop2 = await requests.post(URL_STOPp2, dataStopp2,headers = newHeaders ,timeout = 5)
             except:
                 pass
             ipStateStop2 = await getIPdisplay(dockCode2)
