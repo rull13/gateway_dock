@@ -223,6 +223,7 @@ async def dockBook(request, dockCode):
         # logger.info(f'[BOOKING]       :   [LOG] {valBookingLog}')
         mydb.commit()
         logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [LOG] SUCCESCFULLY UPDATE TO LOG DB DOCK {dockCode}')
+        await flow_log(status='booking', uid=data_dock['uid'].upper(), nopol=data_dock['policeNo'].upper(), dock=dockCode)
     except:
         logger.error(f'[BOOKING]      :   [DOCK {dockCode}] [ERROR] [LOG] INSERT TO LOG ERROR')
     try:
@@ -244,6 +245,7 @@ async def dockBook(request, dockCode):
         logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_BOOK}')
         rBooking = await requests.post(URL_BOOK, dataBook, timeout = 5)
         logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [SEND DISPLAY] SUCCESCFULLY SEND {dataBook} TO DISPLAY')
+
     except:
         delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
         cursor.execute(delpul, [dockCode, "TO DISPLAY"])
@@ -365,6 +367,7 @@ async def dockHF(request, dockCode):
             rHFServer = await requests.post(URL_SERVERIN, json=dataHF, timeout = 5)
             print(rHFServer.status_code)
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND SERVER] SUCCESCFULLY SEND TO {URL_SERVERIN}')
+            await flow_log(status='tapin', uid=dataEPC.upper(), dock=dockCode)
         except:
             delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
             cursor.execute(delpul, [dockCode, "TAP START IN"])
@@ -401,6 +404,7 @@ async def dockHF(request, dockCode):
             dataStartDisplay2 = json.dumps(dataStartDisplay2, separators=(',', ':'))
             newHeaders = {'Content-type': 'application/json'}
             dataBookPolice = {"nopol":f"{policeNumberHF2}"}
+            await flow_log(status='tapin', uid=UidDb2.upper(), dock=dockCode2)
             try:
                 app.add_task(tapInSend(dockCode2))
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_HF2}')
@@ -448,6 +452,7 @@ async def dockHF(request, dockCode):
             rHFServer = await requests.post(URL_SERVEROUT, json=dataHF, timeout = 5)
             print(rHFServer.status_code)
             logger.info(f'[HF RFID]       :   [DOCK {dockCode}] [SEND SERVER] SUCCESCFULLY SEND TO {URL_SERVEROUT}')
+            await flow_log(status='tapout', uid=dataEPC.upper(), dock=dockCode)
         except:
             logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SEND TO SERVER ERROR')
             pullHFERROR = "INSERT INTO send_error (UID, DOCK, STATUS, URL, TOTALTIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s, %s)"
@@ -520,6 +525,7 @@ async def dockHF(request, dockCode):
             dataStateStop2 = {"state":"0"}
             dataStateStop2 = json.dumps(dataStateStop2, separators=(',', ':'))
             newHeaders = {'Content-type': 'application/json'}
+            await flow_log(status='tapout', uid=UidDb2.upper(), dock=dockCode2)
             try:
                 app.add_task(tapOutSend(dockCode2))
                 logger.info(f'[HF RFID]       :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_StateStop2}')
@@ -608,6 +614,7 @@ async def dockStart(request, dockCode):
             mydb.commit()
             logger.info(f'[START DOCK]    :   [DOCK {dockCode}] [QUERY] SUCCESCFULLY UPDATE TO DOCK {dockCode}')
             app.add_task(startDurationLoading(dockCode))
+            await flow_log(status='start', dock=dockCode)
         except:
             logger.error(f'[START DOCK]   :   [DOCK {dockCode}] [ERROR] [QUERY] UPDATE TO DOCK {dockCode} ERROR')
         if uidgetCount == uidgetCount2 and policegetCount == policegetCount2:
@@ -627,6 +634,7 @@ async def dockStart(request, dockCode):
                 mydb.commit()
                 logger.info(f'[START DOCK]    :   [DOCK {dockCode2}] [QUERY] SUCCESCFULLY UPDATE TO DOCK {dockCode2}')
                 app.add_task(startDurationLoading(dockCode2))
+                await flow_log(status='start', dock=dockCode2)
             except:
                 logger.error(f'[START DOCK]   :   [DOCK {dockCode2}] [ERROR] [QUERY] UPDATE TO DOCK {dockCode2} ERROR')
     elif statusStartDock == "STOP":
@@ -691,6 +699,7 @@ async def dockStop(request, dockCode):
         # logger.info(f'[BOOKING]       :   [LOG] {valBookingLog}')
         mydb.commit()
         logger.info(f'[STOP DOCK]     :   [DOCK {dockCode}] [LOG] SUCCESCFULLY UPDATE TO LOG DB DOCK {dockCode}')
+        await flow_log(status='stop', dock=dockCode)
     except:
         logger.error(f'[STOP DOCK]    :   [DOCK {dockCode}] [ERROR] [LOG] INSERT TO LOG ERROR')
     try:
@@ -795,6 +804,7 @@ async def dockStop(request, dockCode):
             dataStat2 = cursor.fetchone()
             statAlarmDock2 = dataStat2[0]
             logger.info(f'[STOP DOCK]     :   [DOCK {dockCode2}] [QUERY] SUCCESCFULLY SELECT STAT ALARM')
+            await flow_log(status='stop', dock=dockCode2)
         except:
             statAlarmDock2  = "notfound"
             logger.error(f'[STOP DOCK]    :   [DOCK {dockCode2}] [ERROR] [QUERY] SELECT STAT ALARM ERROR')
@@ -1274,6 +1284,7 @@ async def mitigasiHF(request, dockCode):
         dataStartDisplay = json.dumps(dataStartDisplay, separators=(',', ':'))
         newHeaders = {'Content-type': 'application/json'}
         dataBookPolice1 = {"nopol":f"{policeNumberHF}"}
+
         try:
             app.add_task(tapInSend(dockCode))
             logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_HF}')
@@ -1299,6 +1310,7 @@ async def mitigasiHF(request, dockCode):
             rHFServer = await requests.post(URL_SERVERIN, json=dataHF, timeout = 5)
             print(rHFServer.status_code)
             logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode}] [SEND SERVER] SUCCESCFULLY SEND TO {URL_SERVERIN}')
+            await flow_log(status='tapin', uid=dataEPC.upper(), dock=dockCode)
         except:
             delpul = "DELETE FROM send_error WHERE DOCK = %s AND SEND_STATUS = %s"
             cursor.execute(delpul, [dockCode, "TAP START IN"])
@@ -1335,6 +1347,7 @@ async def mitigasiHF(request, dockCode):
             dataStartDisplay2 = json.dumps(dataStartDisplay2, separators=(',', ':'))
             newHeaders = {'Content-type': 'application/json'}
             dataBookPolice = {"nopol":f"{policeNumberHF2}"}
+            await flow_log(status='tapin', uid=UidDb2.upper(), dock=dockCode2)
             try:
                 app.add_task(tapInSend(dockCode2))
                 logger.info(f'[MITIGASI IN]   :   [DOCK {dockCode2}] [SEND DISPLAY] SEND POST {URL_HF2}')
@@ -1382,6 +1395,7 @@ async def mitigasiHF(request, dockCode):
             rHFServer = await requests.post(URL_SERVEROUT, json=dataHF, timeout = 5)
             print(rHFServer.status_code)
             logger.info(f'[MITIGASI OUT]  :   [DOCK {dockCode}] [SEND SERVER] SUCCESCFULLY SEND TO {URL_SERVEROUT}')
+            await flow_log(status='tapout', uid=dataEPC.upper(), dock=dockCode)
         except:
             logger.error(f'[MITIGASI OUT] :   [DOCK {dockCode}] [ERROR] [SEND SERVER] SEND TO SERVER ERROR')
             pullHFERROR = "INSERT INTO send_error (UID, DOCK, STATUS, URL, TOTALTIME, SEND_STATUS) VALUES (%s, %s, %s, %s, %s, %s)"
@@ -1444,6 +1458,7 @@ async def mitigasiHF(request, dockCode):
             dataStopp2 = {"alarm":"0"}
             dataStopp2= json.dumps(dataStopp2, separators=(',', ':'))
             newHeaders = {'Content-type': 'application/json'}
+            await flow_log(status='tapout', uid=UidDb2.upper(), dock=dockCode2)
             try:
                 rStop2 = await requests.post(URL_STOPp2, dataStopp2,headers = newHeaders ,timeout = 5)
             except:
@@ -1482,3 +1497,38 @@ async def mitigasiHF(request, dockCode):
 @gateway.route("/<number>", methods=['GET','POST'])
 async def reqRandom(request, number):
     return text('OK')
+
+
+async def flow_log(uid=None, nopol=None, dock=None, status=None):
+    now = datetime.now()
+    try:
+        q1 = "SELECT id, uid, dock, nopol, book, tapin, start, stop, tapout FROM flow_log WHERE dock = %s ORDER BY id DESC LIMIT 1"
+        cursor.execute(q1, [dock])
+        flowlog = cursor.fetchone()
+    except:
+        pass
+    if status.upper() == 'booking'.upper():
+        updateflowLog = "INSERT INTO flow_log (uid, dock, nopol, book, book_time) VALUES (%s, %s, %s, %s, %s)"
+        valflow = uid.upper(), dock, nopol, 'YES', str(now)
+        cursor.execute(updateflowLog, valflow)
+        mydb.commit()
+    elif status.upper() == 'tapin'.upper() and flowlog[5] == None:
+        updateflowLog = f"UPDATE flow_log SET tapin = %s, tapin_time = %s WHERE dock = %s AND uid = %s AND id = %s"
+        value = ["YES", str(now), dock, uid, flowlog[0]]
+        cursor.execute(updateflowLog,value)
+        mydb.commit()
+    elif status.upper() == 'start'.upper() and flowlog[6] == None:
+        updateflowLog = f"UPDATE flow_log SET start = %s, start_time = %s WHERE dock = %s AND id = %s"
+        value = ["YES", str(now), dock, flowlog[0]]
+        cursor.execute(updateflowLog,value)
+        mydb.commit()
+    elif status.upper() =='stop'.upper() and flowlog[7] ==  None:
+        updateflowLog = f"UPDATE flow_log SET stop = %s, stop_time = %s WHERE dock = %s AND id = %s"
+        value = ["YES", str(now), dock, flowlog[0]]
+        cursor.execute(updateflowLog,value)
+        mydb.commit()
+    elif status.upper() == 'tapout'.upper() and flowlog[8] == None:
+        updateflowLog = f"UPDATE flow_log SET tapout = %s, tapout_time = %s, flag = %s WHERE dock = %s AND uid = %s AND id = %s"
+        value = ["YES", str(now), 'completed', dock, uid, flowlog[0]]
+        cursor.execute(updateflowLog,value)
+        mydb.commit()
