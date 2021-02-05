@@ -218,17 +218,17 @@ async def dockBook(request, dockCode):
     # print(database.is_connected)
     try:
         updateBookingLog = "INSERT INTO log_server (UID, STATUS, DOCK, POLICE_NO, TIME, DATA) VALUES (%s, %s, %s, %s, %s, %s)"
-        valBookingLog = data_dock['uid'].upper(), "BOOKING", dockCode, data_dock['policeNo'].upper(), str(now), "IN"
+        valBookingLog = data_dock['uid'].upper(), "BOOKING", dockCode, data_dock['policeNo'].upper().replace(" ",""), str(now), "IN"
         cursor.execute(updateBookingLog, valBookingLog)
         # logger.info(f'[BOOKING]       :   [LOG] {valBookingLog}')
         mydb.commit()
         logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [LOG] SUCCESCFULLY UPDATE TO LOG DB DOCK {dockCode}')
-        await flow_log(status='booking', uid=data_dock['uid'].upper(), nopol=data_dock['policeNo'].upper(), dock=dockCode)
+        await flow_log(status='booking', uid=data_dock['uid'].upper(), nopol=data_dock['policeNo'].upper().replace(" ",""), dock=dockCode)
     except:
         logger.error(f'[BOOKING]      :   [DOCK {dockCode}] [ERROR] [LOG] INSERT TO LOG ERROR')
     try:
         updateBOOKING = "UPDATE loading_dock SET UID = %s, STATUS = %s, POLICE_NO = %s, LAST_UPDATE = %s  WHERE DOCK = %s"
-        valBOOKING = [data_dock['uid'].upper(), "BOOKING", data_dock['policeNo'].upper(), str(now), dockCode]
+        valBOOKING = [data_dock['uid'].upper(), "BOOKING", data_dock['policeNo'].upper().replace(" ",""), str(now), dockCode]
         cursor.execute(updateBOOKING,valBOOKING)
         logger.info(f'[BOOKING]       :   [DOCK {dockCode}] [QUERY] {valBOOKING}')
         mydb.commit()
@@ -236,7 +236,7 @@ async def dockBook(request, dockCode):
     except:
         logger.error(f'[BOOKING]      :   [DOCK {dockCode}] [ERROR] [QUERY] UPDATE TO DOCK {dockCode} ERROR')
     ipDisplay = await getIPdisplay(dockCode)
-    policeNumber = data_dock['policeNo'].upper()
+    policeNumber = data_dock['policeNo'].upper().replace(" ","")
     URL_BOOK = f'http://{ipDisplay}'
     dataBook = {"nopol":f"{policeNumber}"}
     dataBook = json.dumps(dataBook, separators=(',', ':'))
