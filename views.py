@@ -46,7 +46,7 @@ async def cekCountLoad():
         app.add_task(startDurationLoading(dockName))
 
 async def bookingSend(dockCode, nopol):
-    for i in range(1,11):
+    for i in range(1,4):
         await asyncio.sleep(10)
         ipDisplay = await getIPdisplay(dockCode)
         policeNumber = nopol
@@ -64,7 +64,7 @@ async def bookingSend(dockCode, nopol):
 
 
 async def tapInSend(dockCode):
-    for k in range(1,11):
+    for k in range(1,4):
         await asyncio.sleep(10)
         ipDisplayHF = await getIPdisplay(dockCode)
         URL_HF = f'http://{ipDisplayHF}'
@@ -80,8 +80,43 @@ async def tapInSend(dockCode):
         except:
             logger.error(f'[HF RIFD]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
 
+async def enableSend(dockCode):
+    for k in range(1,4):
+        await asyncio.sleep(10)
+        ipDisplayHF = await getIPdisplay(dockCode)
+        URL_HF = f'http://{ipDisplayHF}'
+        dataStartDisplay = {"active":"1"}
+        dataStartDisplay = json.dumps(dataStartDisplay, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
+        try:
+            logger.info(f'[ENABLE]        :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST PER : {k}')
+            logger.info(f'[ENABLE]        :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_HF}')
+            rHF = await requests.post(URL_HF, dataStartDisplay,headers=newHeaders, timeout = 5)
+            logger.info(f'[ENABLE]        :   [DOCK {dockCode}] [SEND DISPLAY] {dataStartDisplay}')
+            logger.info(f'[ENABLE]        :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+        except:
+            logger.error(f'[ENABLE]       :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+
+
+async def disableSend(dockCode):
+    for k in range(1,4):
+        await asyncio.sleep(10)
+        ipDisplayHF = await getIPdisplay(dockCode)
+        URL_HF = f'http://{ipDisplayHF}'
+        dataStartDisplay = {"active":"0"}
+        dataStartDisplay = json.dumps(dataStartDisplay, separators=(',', ':'))
+        newHeaders = {'Content-type': 'application/json'}
+        try:
+            logger.info(f'[DISABLE]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST PER : {k}')
+            logger.info(f'[DISABLE]       :   [DOCK {dockCode}] [SEND DISPLAY] SEND POST {URL_HF}')
+            rHF = await requests.post(URL_HF, dataStartDisplay,headers=newHeaders, timeout = 5)
+            logger.info(f'[DISBALE]       :   [DOCK {dockCode}] [SEND DISPLAY] {dataStartDisplay}')
+            logger.info(f'[DISABLE]       :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND POST TO DISPLAY')
+        except:
+            logger.error(f'[DISABLE]      :   [DOCK {dockCode}] [ERROR] [SEND DISPLAY] SEND TO DISPLAY ERROR')
+
 async def tapOutSend(dockCode):
-    for o in range(1,11):
+    for o in range(1,5):
         await asyncio.sleep(10)
         ipStateStop = await getIPdisplay(dockCode)
         URL_StateStop = f'http://{ipStateStop}'
@@ -941,6 +976,7 @@ async def dockDisable(request, dockCode):
     dataDisable = json.dumps(dataDisable, separators=(',', ':'))
     newHeaders = {'Content-type': 'application/json'}
     try:
+        app.add_task(disableSend(dockCode))
         logger.info(f'[DISABLE DOCK]  :   [DOCK {dockCode}] [SEND DISPLAY] SEND GET {URL_Disable}')
         rDisable = await requests.post(URL_Disable, dataDisable,headers= newHeaders ,timeout = 5)
         logger.info(f'[DISABLE DOCK]  :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND GET TO DISPLAY')
@@ -991,6 +1027,7 @@ async def dockEnable(request, dockCode):
     dataEnable = json.dumps(dataEnable, separators=(',', ':'))
     newHeaders = {'Content-type': 'application/json'}
     try:
+        app.add_task(enableSend(dockCode))
         logger.info(f'[ENABLE DOCK]   :   [DOCK {dockCode}] [SEND DISPLAY] SEND GET {URL_Enable}')
         rEnable = await requests.post(URL_Enable, dataEnable,headers=newHeaders ,timeout = 5)
         logger.info(f'[ENABLE DOCK]   :   [DOCK {dockCode}] [SEND DISPLAY] SEUCCESFULLY SEND GET TO DISPLAY')
